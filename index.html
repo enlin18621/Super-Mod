@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Civic Mandate - Parliament Simulator</title>
+    <link rel="stylesheet" href="assets/css/style.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Lawgivers II inspired sandbox</p>
+          <h1>Civic Mandate</h1>
+          <p class="subtitle">
+            Build coalitions, manage budgets, and survive the next election. Every
+            decision shifts public trust and parliamentary power.
+          </p>
+        </div>
+        <div class="metrics">
+          <div class="metric">
+            <span>Approval</span>
+            <strong id="approval">62%</strong>
+          </div>
+          <div class="metric">
+            <span>Economy</span>
+            <strong id="economy">+1.8%</strong>
+          </div>
+          <div class="metric">
+            <span>Budget</span>
+            <strong id="budget">$32.4B</strong>
+          </div>
+        </div>
+      </header>
+
+      <main class="grid">
+        <section class="panel">
+          <h2>Parliament</h2>
+          <div class="seats">
+            <div class="seat-row">
+              <span>Unity Party</span>
+              <span id="seats-unity">42</span>
+            </div>
+            <div class="seat-row">
+              <span>Progress Alliance</span>
+              <span id="seats-progress">31</span>
+            </div>
+            <div class="seat-row">
+              <span>Green Horizon</span>
+              <span id="seats-green">17</span>
+            </div>
+            <div class="seat-row">
+              <span>Liberty Front</span>
+              <span id="seats-liberty">10</span>
+            </div>
+          </div>
+          <p class="hint">
+            Majority threshold: <strong id="majority">51</strong> seats.
+          </p>
+          <button class="primary" id="call-election">Call election</button>
+        </section>
+
+        <section class="panel">
+          <h2>Cabinet Briefing</h2>
+          <div class="briefing">
+            <div>
+              <span class="label">Priority</span>
+              <p id="priority">Healthcare Reform</p>
+            </div>
+            <div>
+              <span class="label">Coalition</span>
+              <p id="coalition">Unity Party + Progress Alliance</p>
+            </div>
+            <div>
+              <span class="label">Next vote</span>
+              <p id="next-vote">Citizen Housing Fund</p>
+            </div>
+          </div>
+          <div class="actions">
+            <button id="pass-law">Pass law</button>
+            <button id="campaign">Campaign tour</button>
+            <button id="budget-cut">Trim budget</button>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Policy Dashboard</h2>
+          <div class="policy">
+            <div class="policy-card">
+              <h3>Public Services</h3>
+              <p id="services">Stable, citizens satisfied.</p>
+            </div>
+            <div class="policy-card">
+              <h3>Security</h3>
+              <p id="security">Border tensions easing.</p>
+            </div>
+            <div class="policy-card">
+              <h3>International</h3>
+              <p id="foreign">Trade talks ongoing.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel log">
+          <h2>Press Room</h2>
+          <ul id="log"></ul>
+        </section>
+      </main>
+    </div>
+
+    <script src="assets/js/app.js"></script>
+  </body>
+</html>
