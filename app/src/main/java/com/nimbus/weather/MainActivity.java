@@ -128,6 +128,8 @@ public class MainActivity extends Activity {
             else refreshAll();
         });
 
+        button(calendarCard,L10n.t(this,"openCalendar"),this::openSystemCalendar);
+        button(calendarCard,L10n.t(this,"addCalendar"),this::addSystemEvent);
         LinearLayout transitCard=card("↗  "+L10n.t(this,"departures"));
         transitText=content(transitCard);
         button(transitCard,L10n.t(this,"vbbSource"),()->openUrl("https://v6.vbb.transport.rest/api.html"));
@@ -381,6 +383,22 @@ public class MainActivity extends Activity {
             statusText.setText(L10n.t(this,"saved"));
             refreshAll();
         }
+    }
+    private void openSystemCalendar(){
+        try{
+            Intent i=new Intent(Intent.ACTION_MAIN);
+            i.addCategory(Intent.CATEGORY_APP_CALENDAR);
+            startActivity(i);
+        }catch(ActivityNotFoundException ex){statusText.setText(L10n.t(this,"calendarUnavailable"));}
+    }
+    private void addSystemEvent(){
+        try{
+            Intent i=new Intent(Intent.ACTION_INSERT);
+            i.setData(android.provider.CalendarContract.Events.CONTENT_URI);
+            String uni=Prefs.get(this).getString("uni","");
+            if(!uni.isEmpty())i.putExtra(android.provider.CalendarContract.Events.EVENT_LOCATION,uni);
+            startActivity(i);
+        }catch(ActivityNotFoundException ex){statusText.setText(L10n.t(this,"calendarUnavailable"));}
     }
     private void openMaps(){
         SharedPreferences p=Prefs.get(this);String destination=p.getString("uni","");

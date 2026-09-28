@@ -23,6 +23,9 @@ final class L10n {
         add("calendar","Mein Kalender","My calendar","我的行事曆");
         add("calempty","Heute keine Termine gefunden.","No events found today.","今天沒有找到行程。");
         add("calpermission","Kalenderzugriff erlauben","Allow calendar access","允許讀取行事曆");
+        add("openCalendar","Samsung-/Google-Kalender öffnen ↗","Open Samsung/Google Calendar ↗","開啟 Samsung／Google 行事曆 ↗");
+        add("addCalendar","Termin im Kalender erstellen ↗","Create event in device calendar ↗","在手機行事曆建立活動 ↗");
+        add("calendarUnavailable","Keine Kalender-App zum Öffnen gefunden.","No compatible calendar app found.","找不到相容的行事曆應用程式。");
         add("departures","Nächste Abfahrten","Next departures","即將發車");
         add("stopmissing","Haltestelle in den Einstellungen eingeben.","Set a stop in Settings.","請於設定中輸入車站。");
         add("departuresempty","Keine Abfahrten verfügbar.","No departures available.","目前沒有發車資訊。");
