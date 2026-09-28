@@ -135,6 +135,57 @@ final class GitHubSync {
             }
         });
     }
+
+    static void pushSettings(Context c,Done callback) {
+        if(!enabled(c)||!Prefs.get(c).getBoolean("sync_write_settings",false)){
+            if(callback!=null)callback.complete(false,"Two-way settings upload is off");
+            return;
+        }
+        Context app=c.getApplicationContext();
+        EXEC.execute(()->{
+            try{
+                ensurePrivate(app);
+                JSONObject old=remoteFile(app,REMOTE_CONFIG);
+                if(old==null)throw new Exception("First create nimbus-state.json in the private repository, then pull it");
+                String remoteSha=old.optString("sha","");
+                String expected=Prefs.get(app).getString("sync_applied_sha","");
+                if(expected.isEmpty()||!expected.equals(remoteSha))
+                    throw new Exception("Remote settings have changed. Sync before uploading local edits.");
+                JSONObject state=new JSONObject(new String(Base64.decode(
+                    old.optString("content","").replace("\n",""),Base64.DEFAULT),StandardCharsets.UTF_8));
+                if(state.optInt("version",1)!=1)throw new Exception("Unsupported settings format");
+                SharedPreferences p=Prefs.get(app);
+                state.put("version",1).put("city",Prefs.city(app)).put("stop",p.getString("stop",""))
+                    .put("lang",p.getString("lang","de")).put("fahrenheit",p.getBoolean("fahrenheit",false));
+                if(p.getBoolean("sync_write_settings",false)){
+                    // User specifically opted in to uploading private settings into this PRIVATE repository.
+                    state.put("home",p.getString("home","")).put("uni",p.getString("uni",""))
+                        .put("plans_day",p.getString("plans_day",""))
+                        .put("plans",today().equals(p.getString("plans_day",""))?p.getString("plans",""):"");
+                }
+                byte[] bytes=state.toString(2).getBytes(StandardCharsets.UTF_8);
+                if(bytes.length>20000)throw new Exception("State file too large");
+                JSONObject body=new JSONObject().put("message","Nimbus settings edited on Android")
+                    .put("sha",remoteSha)
+                    .put("content",Base64.encodeToString(bytes,Base64.NO_WRAP));
+                HttpURLConnection conn=connect(app,REMOTE_CONFIG,"PUT");
+                try{
+                    conn.setDoOutput(true);conn.setRequestProperty("Content-Type","application/json");
+                    try(OutputStream out=conn.getOutputStream()){out.write(body.toString().getBytes(StandardCharsets.UTF_8));}
+                    int status=conn.getResponseCode();
+                    if(status==409||status==422)throw new Exception("Remote update conflict: sync first");
+                    if(status!=200&&status!=201)throw new Exception("Could not upload: GitHub HTTP "+status);
+                    JSONObject response=new JSONObject(read(conn));
+                    String newSha=response.optJSONObject("content")==null?"":response.getJSONObject("content").optString("sha","");
+                    if(!newSha.isEmpty())p.edit().putString("sync_applied_sha",newSha).apply();
+                    if(callback!=null)callback.complete(true,"Private settings uploaded");
+                }finally{conn.disconnect();}
+            }catch(Exception ex){
+                Prefs.get(app).edit().putString("sync_error",ex.getMessage()).apply();
+                if(callback!=null)callback.complete(false,ex.getMessage());
+            }
+        });
+    }
     static void push(Context c,DashboardData.Snapshot snapshot){
         if(!enabled(c)||!Prefs.get(c).getBoolean("sync_device_report",false))return;
         if(System.currentTimeMillis()-Prefs.get(c).getLong("sync_pushed",0)<30*60*1000L)return;
