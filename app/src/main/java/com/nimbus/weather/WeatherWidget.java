@@ -21,8 +21,20 @@ public class WeatherWidget extends AppWidgetProvider {
         if(ids.length==0){if(pending!=null)pending.finish();return;}
         try{
             render(app,DashboardData.cached(app));
-            DashboardData.refresh(app,s->{try{render(app,s);}finally{if(pending!=null)pending.finish();}});
+            if(GitHubSync.enabled(app)){
+                GitHubSync.pull(app,(ok,message)->refreshWidget(app,pending));
+            }else refreshWidget(app,pending);
         }catch(Exception e){if(pending!=null)pending.finish();}
+    }
+    private static void refreshWidget(Context app,PendingResult pending){
+        DashboardData.refresh(app,s->{
+            try{
+                render(app,s);
+                ProactiveAlerts.evaluate(app,s);
+                GitHubSync.push(app,s);
+                AiBridge.maybeAutomatic(app,s,()->render(app,DashboardData.cached(app)));
+            }finally{if(pending!=null)pending.finish();}
+        });
     }
     static void render(Context c,DashboardData.Snapshot snapshot){
         Context app=c.getApplicationContext();

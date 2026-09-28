@@ -110,6 +110,23 @@ final class L10n {
         add("aiError","KI-Anfrage fehlgeschlagen:","AI request failed:","AI 請求失敗：");
         add("aiStale","Älteres KI-Briefing (Daten prüfen):","Older AI briefing (verify current facts):","較早的 AI 簡報（請確認最新資訊）：");
         add("aiAlert","Neues KI-Tagesbriefing","New AI daily briefing","新的 AI 每日建議");
+        add("syncTitle","Private Synchronisierung mit ChatGPT über GitHub","Private ChatGPT sync via GitHub","透過 GitHub 與 ChatGPT 私人同步");
+        add("syncExplanation","Optional: separates PRIVATES Repository, in dem ChatGPT Einstellungen ändern kann. Deine App lädt diese automatisch. Ein eigenes, nur für dieses Repository berechtigtes Token gehört nur hier ins Handy, nie in ChatGPT. Keine automatische ChatGPT-Memory-Synchronisierung.","Optional: a separate PRIVATE repository where ChatGPT can update settings. Nimbus downloads changes automatically. Enter a fine-grained token restricted to this repo here on your phone, never in ChatGPT. This does not sync ChatGPT memory.","選用：使用獨立私人 GitHub 儲存庫讓 ChatGPT 更新設定，Nimbus 自動下載。請於手機輸入只限此儲存庫的細分權杖，勿傳給 ChatGPT。這不是 ChatGPT 記憶同步。");
+        add("syncCheck","Private GitHub-Synchronisierung aktivieren","Enable private GitHub sync","啟用私人 GitHub 同步");
+        add("syncRepo","PRIVATES Repository (Nutzer/Repo)","PRIVATE repository (owner/repo)","私人儲存庫（使用者／儲存庫）");
+        add("syncToken","GitHub Fine-grained Token (Contents: R/W für dieses Repo)","Fine-grained GitHub token (Contents R/W for this repo)","GitHub 細分權杖（僅此儲存庫內容讀寫權限）");
+        add("syncTokenHint","Token niemals in Chats, Kalender oder öffentlichem Repo speichern","Never put your token in a chat, calendar or public repo","勿將權杖放入聊天、行事曆或公開儲存庫");
+        add("syncReportCheck","Gerätestatus zurückmelden (ohne persönliche Ereignisse)","Report device status (without personal events)","回傳裝置狀態（不包含個人活動）");
+        add("syncEventsCheck","Auch heutige Kalendereinträge zurückmelden (Titel/Uhrzeiten)","Also report today's calendar entries (titles/times)","一併回傳今日行事曆活動（標題／時間）");
+        add("syncPrivateCheck","Auch Heimat-/Uni-Adresse und heutige Pläne zurückmelden","Also report home/university addresses and today's plans","一併回傳家／大學地址及今日計畫");
+        add("syncGpsCheck","Auch genauen GPS-Standort zurückmelden (zusätzlich zu privaten Daten)","Also report precise GPS (requires private-data sharing)","一併回傳精確 GPS 位置（須同時啟用私人資料分享）");
+        add("syncPull","Jetzt mit ChatGPT-Sync abgleichen","Sync with ChatGPT now","立即與 ChatGPT 同步");
+        add("syncStop","Synchronisierung deaktivieren und Token löschen","Disable sync and erase token","停用同步並刪除權杖");
+        add("syncStopped","Synchronisierung deaktiviert; Token vom Gerät entfernt.","Sync disabled; token removed from device.","已停用同步並從手機移除權杖。");
+        add("syncSetup","Zuerst privates Repository, eingeschränkten Token und Synchronisierung unter Einstellungen speichern.","First save your private repo, restricted token and enable sync in Settings.","請先在設定儲存私人儲存庫與受限權杖並啟用同步。");
+        add("syncing","Private Einstellungen werden geprüft…","Checking private settings…","正在檢查私人設定…");
+        add("syncSuccess","Privates Update geladen. Neue Daten werden abgerufen.","Private update imported. Refreshing data.","已匯入私人更新，正在取得新資料。");
+        add("syncError","Synchronisierung nicht verfügbar","Sync unavailable","無法同步");
 
     }
     static String lang(Context c) { return Prefs.get(c).getString("lang","de"); }
