@@ -41,8 +41,8 @@ public class MainActivity extends Activity {
     private static final String[] LANGS={"de","en","zh-TW"};
     private static final ExecutorService SAVE_EXECUTOR=Executors.newSingleThreadExecutor();
     private LinearLayout root;private TextView weatherText,sunText,eventsText,transitText,bringText,statusText,locationText,routeText,aiText;
-    private EditText cityInput,homeInput,uniInput,stopInput,plansInput,apiKeyInput;
-    private Spinner langSpinner;private CheckBox fahrenheit,shareAddress,gpsCheck,alertsCheck,aiCheck,aiShareLocations;
+    private EditText cityInput,homeInput,uniInput,stopInput,plansInput,apiKeyInput,syncRepoInput,syncTokenInput;
+    private Spinner langSpinner;private CheckBox fahrenheit,shareAddress,gpsCheck,alertsCheck,aiCheck,aiShareLocations,syncCheck,syncReportCheck,syncEventsCheck,syncPrivateCheck,syncGpsCheck;
     @Override public void onCreate(Bundle state){
         super.onCreate(state);buildUi();render(DashboardData.cached(this));handleSharedText(getIntent());BackgroundJob.updateSchedule(this);refreshAll();
     }
@@ -152,6 +152,7 @@ public class MainActivity extends Activity {
         button(actions,L10n.t(this,"refresh"),this::refreshAll);
         button(actions,L10n.t(this,"chatgpt"),this::shareToChatGpt);
         button(actions,L10n.t(this,"paste"),this::pasteUpdate);
+        button(actions,L10n.t(this,"syncPull"),this::syncNow);
         actions.addView(text(L10n.t(this,"chatnote"),12,MUTED,false));
         statusText=text("",13,MINT,false);LinearLayout.LayoutParams statusParams=new LinearLayout.LayoutParams(-1,-2);
         statusParams.setMargins(0,dp(13),0,0);actions.addView(statusText,statusParams);
@@ -189,6 +190,33 @@ public class MainActivity extends Activity {
             SafeKeyStore.remove(this);Prefs.get(this).edit().putBoolean("ai_auto",false).apply();
             aiCheck.setChecked(false);apiKeyInput.setText("");apiKeyInput.setHint(L10n.t(this,"apiHint"));
             statusText.setText(L10n.t(this,"keyRemoved"));
+        });
+
+        LinearLayout syncCard=card("⇄  "+L10n.t(this,"syncTitle"));
+        syncCard.addView(text(L10n.t(this,"syncExplanation"),13,MUTED,false));
+        syncCheck=new CheckBox(this);syncCheck.setText(L10n.t(this,"syncCheck"));syncCheck.setTextColor(WHITE);
+        syncCheck.setChecked(p.getBoolean("sync_enabled",false));syncCard.addView(syncCheck);
+        syncRepoInput=input(syncCard,L10n.t(this,"syncRepo"),p.getString("sync_repo",""),false);
+        syncTokenInput=input(syncCard,L10n.t(this,"syncToken"),"",false);
+        syncTokenInput.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        syncTokenInput.setHint(GitHubTokenVault.read(this).isEmpty()?L10n.t(this,"syncTokenHint"):L10n.t(this,"apiSaved"));
+        syncReportCheck=new CheckBox(this);syncReportCheck.setText(L10n.t(this,"syncReportCheck"));syncReportCheck.setTextColor(WHITE);
+        syncReportCheck.setChecked(p.getBoolean("sync_device_report",false));syncCard.addView(syncReportCheck);
+        syncEventsCheck=new CheckBox(this);syncEventsCheck.setText(L10n.t(this,"syncEventsCheck"));syncEventsCheck.setTextColor(WHITE);
+        syncEventsCheck.setChecked(p.getBoolean("sync_share_events",false));syncCard.addView(syncEventsCheck);
+        syncPrivateCheck=new CheckBox(this);syncPrivateCheck.setText(L10n.t(this,"syncPrivateCheck"));syncPrivateCheck.setTextColor(WHITE);
+        syncPrivateCheck.setChecked(p.getBoolean("sync_share_private",false));syncCard.addView(syncPrivateCheck);
+        syncGpsCheck=new CheckBox(this);syncGpsCheck.setText(L10n.t(this,"syncGpsCheck"));syncGpsCheck.setTextColor(WHITE);
+        syncGpsCheck.setChecked(p.getBoolean("sync_share_precise_gps",false));syncCard.addView(syncGpsCheck);
+        button(syncCard,L10n.t(this,"syncPull"),this::syncNow);
+        button(syncCard,L10n.t(this,"syncStop"),()->{
+            Prefs.get(this).edit().putBoolean("sync_enabled",false).putBoolean("sync_device_report",false)
+                .putBoolean("sync_share_events",false).putBoolean("sync_share_private",false)
+                .putBoolean("sync_share_precise_gps",false).apply();
+            GitHubTokenVault.remove(this);syncTokenInput.setText("");syncCheck.setChecked(false);
+            syncReportCheck.setChecked(false);syncEventsCheck.setChecked(false);syncPrivateCheck.setChecked(false);
+            syncGpsCheck.setChecked(false);BackgroundJob.updateSchedule(this);
+            statusText.setText(L10n.t(this,"syncStopped"));
         });
         button(settings,L10n.t(this,"save"),this::saveSettings);
     }
@@ -264,10 +292,24 @@ public class MainActivity extends Activity {
         StringBuilder items=new StringBuilder();
         for(String item:s.bring)items.append("•  ").append(item).append("\n");
         bringText.setText(items.toString().trim());
+        if(Prefs.get(this).getBoolean("sync_enabled",false)){
+            String error=Prefs.get(this).getString("sync_error","");
+            if(!error.isEmpty())statusText.setText(L10n.t(this,"syncError")+": "+error);
+        }
         if(s.updated>0)statusText.setText(L10n.t(this,"updated")+" "+new SimpleDateFormat("HH:mm",Locale.getDefault()).format(new Date(s.updated))+(s.error?" · "+L10n.t(this,"error"):""));
     }
     private void refreshAll(){
         statusText.setText(L10n.t(this,"updating"));
+        if(GitHubSync.enabled(this)){
+            GitHubSync.pull(this,(ok,detail)->runOnUiThread(()->{
+                if(ok)buildUi();else statusText.setText(L10n.t(this,"syncError")+": "+detail);
+                refreshLocationThenFetch();
+            }));
+            return;
+        }
+        refreshLocationThenFetch();
+    }
+    private void refreshLocationThenFetch(){
         if(Prefs.get(this).getBoolean("use_gps",false)&&GeoRoute.permitted(this)){
             GeoRoute.requestCurrent(this,found->fetchFresh());return;
         }
@@ -277,6 +319,7 @@ public class MainActivity extends Activity {
         DashboardData.refresh(this,s->{
             WeatherWidget.render(this,s);
             ProactiveAlerts.evaluate(this,s);
+            GitHubSync.push(this,s);
             AiBridge.maybeAutomatic(this,s,()->runOnUiThread(()->{
                 render(DashboardData.cached(this));
                 WeatherWidget.render(this,DashboardData.cached(this));
@@ -291,12 +334,22 @@ public class MainActivity extends Activity {
             .putString("uni",uniInput.getText().toString().trim()).putString("stop",stopInput.getText().toString().trim())
             .putString("plans",plansInput.getText().toString()).putString("plans_day",todayStamp()).putString("lang",LANGS[langSpinner.getSelectedItemPosition()])
             .putBoolean("fahrenheit",fahrenheit.isChecked()).putBoolean("share_address",shareAddress.isChecked());
+        edit.putBoolean("sync_enabled",syncCheck.isChecked()).putString("sync_repo",syncRepoInput.getText().toString().trim())
+            .putBoolean("sync_device_report",syncReportCheck.isChecked())
+            .putBoolean("sync_share_events",syncEventsCheck.isChecked())
+            .putBoolean("sync_share_private",syncPrivateCheck.isChecked())
+            .putBoolean("sync_share_precise_gps",syncGpsCheck.isChecked());
         edit.putBoolean("use_gps",gpsCheck.isChecked()).putBoolean("auto_alerts",alertsCheck.isChecked())
             .putBoolean("ai_auto",aiCheck.isChecked()).putBoolean("ai_share_locations",aiShareLocations.isChecked());
         edit.apply();
         String key=apiKeyInput.getText().toString().trim();
         if(!key.isEmpty()){
             try{SafeKeyStore.save(this,key);apiKeyInput.setText("");}
+            catch(Exception ex){statusText.setText(L10n.t(this,"keyError"));}
+        }
+        String syncToken=syncTokenInput.getText().toString().trim();
+        if(!syncToken.isEmpty()){
+            try{GitHubTokenVault.save(this,syncToken);syncTokenInput.setText("");}
             catch(Exception ex){statusText.setText(L10n.t(this,"keyError"));}
         }
         BackgroundJob.updateSchedule(this);
@@ -414,6 +467,16 @@ public class MainActivity extends Activity {
         String lang=json.optString("lang","");if(lang.equals("de")||lang.equals("en")||lang.equals("zh-TW"))edit.putString("lang",lang);
         edit.apply();buildUi();render(DashboardData.cached(this));
         statusText.setText(L10n.t(this,"imported"));
+    }
+    private void syncNow(){
+        if(!GitHubSync.enabled(this)){
+            statusText.setText(L10n.t(this,"syncSetup"));return;
+        }
+        statusText.setText(L10n.t(this,"syncing"));
+        GitHubSync.pull(this,(ok,message)->runOnUiThread(()->{
+            statusText.setText(ok?L10n.t(this,"syncSuccess"):L10n.t(this,"syncError")+": "+message);
+            if(ok){buildUi();refreshLocationThenFetch();}
+        }));
     }
     private void openUrl(String url){startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse(url)));}
     private void askAiNow(){
