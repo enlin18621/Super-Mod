@@ -13,7 +13,7 @@ public class BackgroundJob extends JobService {
     /** Android controls exact execution time. Uses internet; 30-minute interval is a request, not a guarantee. */
     static void updateSchedule(Context c){
         JobScheduler scheduler=(JobScheduler)c.getSystemService(Context.JOB_SCHEDULER_SERVICE);
-        if(!Prefs.get(c).getBoolean("auto_alerts",false)&&!Prefs.get(c).getBoolean("sync_enabled",false)){
+        if(!Prefs.get(c).getBoolean("auto_alerts",false)&&!Prefs.get(c).getBoolean("sync_enabled",false)&&!Prefs.get(c).getBoolean("ai_auto",false)){
             scheduler.cancel(JOB_ID);return;
         }
         JobInfo info=new JobInfo.Builder(JOB_ID,new ComponentName(c,BackgroundJob.class))
