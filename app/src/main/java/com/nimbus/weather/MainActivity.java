@@ -42,7 +42,7 @@ public class MainActivity extends Activity {
     private static final ExecutorService SAVE_EXECUTOR=Executors.newSingleThreadExecutor();
     private LinearLayout root;private TextView weatherText,sunText,eventsText,transitText,bringText,statusText,locationText,routeText,aiText;
     private EditText cityInput,homeInput,uniInput,stopInput,plansInput,apiKeyInput;
-    private Spinner langSpinner;private CheckBox fahrenheit,shareAddress,gpsCheck,alertsCheck,aiCheck;
+    private Spinner langSpinner;private CheckBox fahrenheit,shareAddress,gpsCheck,alertsCheck,aiCheck,aiShareLocations;
     @Override public void onCreate(Bundle state){
         super.onCreate(state);buildUi();render(DashboardData.cached(this));handleSharedText(getIntent());BackgroundJob.updateSchedule(this);refreshAll();
     }
@@ -180,6 +180,8 @@ public class MainActivity extends Activity {
         alertsCheck.setChecked(p.getBoolean("auto_alerts",false));settings.addView(alertsCheck);
         aiCheck=new CheckBox(this);aiCheck.setText(L10n.t(this,"aiCheck"));aiCheck.setTextColor(WHITE);
         aiCheck.setChecked(p.getBoolean("ai_auto",false));settings.addView(aiCheck);
+        aiShareLocations=new CheckBox(this);aiShareLocations.setText(L10n.t(this,"aiLocationSharing"));aiShareLocations.setTextColor(WHITE);
+        aiShareLocations.setChecked(p.getBoolean("ai_share_locations",false));settings.addView(aiShareLocations);
         apiKeyInput=input(settings,L10n.t(this,"apiKey"),"",false);
         apiKeyInput.setHint(SafeKeyStore.read(this).isEmpty()?L10n.t(this,"apiHint"):L10n.t(this,"apiSaved"));
         apiKeyInput.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_PASSWORD);
@@ -290,7 +292,7 @@ public class MainActivity extends Activity {
             .putString("plans",plansInput.getText().toString()).putString("plans_day",todayStamp()).putString("lang",LANGS[langSpinner.getSelectedItemPosition()])
             .putBoolean("fahrenheit",fahrenheit.isChecked()).putBoolean("share_address",shareAddress.isChecked());
         edit.putBoolean("use_gps",gpsCheck.isChecked()).putBoolean("auto_alerts",alertsCheck.isChecked())
-            .putBoolean("ai_auto",aiCheck.isChecked());
+            .putBoolean("ai_auto",aiCheck.isChecked()).putBoolean("ai_share_locations",aiShareLocations.isChecked());
         edit.apply();
         String key=apiKeyInput.getText().toString().trim();
         if(!key.isEmpty()){

@@ -98,6 +98,7 @@ final class L10n {
         add("aiNow","Jetzt KI-Briefing abrufen (separate API-Kosten)","Ask AI now (separately billed API)","現在取得 AI 建議（API 另計費）");
         add("aiCheck","KI-Briefing automatisch (max. 3 API-Anfragen/Tag; überträgt Termine/Pläne)","Automatic AI briefing (max 3 API requests/day; shares events/plans)","自動 AI 建議（每日最多 3 次 API 請求，會傳送行程與計畫）");
         add("aiPrivacy","Nicht dein ChatGPT-Abo oder dessen Gedächtnis. Eigener OpenAI-API-Schlüssel nötig; Kalender/Pläne werden an OpenAI gesendet.","Not your ChatGPT subscription or memory. Requires your own OpenAI API key; calendar and plans are sent to OpenAI.","與 ChatGPT 訂閱／記憶不同；須自備 OpenAI API 金鑰，行程與計畫將傳送至 OpenAI。");
+        add("aiLocationSharing","Event-Orte/Zieladressen für KI-Tipps an OpenAI übertragen (optional)","Share event locations/destination addresses with OpenAI for AI advice (optional)","允許將活動地點／目的地地址傳送至 OpenAI 取得 AI 建議（選用）");
         add("apiKey","OpenAI-API-Schlüssel (nur lokal verschlüsselt; hier niemals teilen)","OpenAI API key (encrypted locally; never share here)","OpenAI API 金鑰（僅在手機加密儲存，勿在此分享）");
         add("apiHint","API-Schlüssel in Einstellungen eingeben; separates API-Konto nötig.","Enter an API key in Settings; a separate API account is required.","請於設定輸入 API 金鑰，須另有 API 帳戶。");
         add("apiSaved","Schlüssel gespeichert – leer lassen, um ihn zu behalten","Key saved – leave blank to keep it","金鑰已儲存，留空即可保留");

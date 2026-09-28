@@ -41,14 +41,14 @@ final class AiBridge {
         }
         for(CalendarReader.Event e:s.events)
             p.append("\nCalendar/on-device: ").append(e.allDay?"all-day":DashboardData.time(c,e.start)).append(" ").append(e.title)
-                .append(e.location==null?"":" location: "+e.location);
+                .append(Prefs.get(c).getBoolean("ai_share_locations",false)&&e.location!=null?" location: "+e.location:"");
         String date=new SimpleDateFormat("yyyy-MM-dd",Locale.ROOT).format(new Date());
         if(date.equals(Prefs.get(c).getString("plans_day","")))
             p.append("\nManual plans: ").append(Prefs.get(c).getString("plans",""));
         if(s.route!=null)
             p.append("\nVBB itinerary last checked: ").append(new Date(s.route.optLong("checkedAt",0)))
                 .append("\nRoute recommendation: ").append(GeoRoute.shortRoute(c,s.route))
-                .append("\nDestination: ").append(s.route.optString("destination"))
+                .append(Prefs.get(c).getBoolean("ai_share_locations",false)?"\nDestination: "+s.route.optString("destination"):"")
                 .append("\nArrival: ").append(new Date(s.route.optLong("arrival")));
         else p.append("\nRoute: unverified or unavailable");
         p.append("\nRecommended items (rules): ").append(s.bring.toString())
