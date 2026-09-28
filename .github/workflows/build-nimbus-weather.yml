@@ -1,7 +1,7 @@
-name: Build Nimbus Weather APK
+name: Build Nimbus Daily APK
 on:
   push:
-    branches: [nimbus-weather-build]
+    branches: [nimbus-daily-v2]
   workflow_dispatch:
 jobs:
   build:
@@ -14,16 +14,14 @@ jobs:
           java-version: '17'
       - name: Install SDK
         run: |
-          echo "ANDROID_HOME=$ANDROID_HOME"
           SDKMANAGER=$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | head -n 1)
           "$SDKMANAGER" --install "platforms;android-35" "build-tools;35.0.0"
-      - name: Install Gradle
-        uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.10.2'
       - name: Build installable debug APK
         run: gradle --no-daemon assembleDebug
       - uses: actions/upload-artifact@v4
         with:
-          name: NimbusWeather-debug-APK
+          name: NimbusDaily-v2-APK
           path: app/build/outputs/apk/debug/app-debug.apk

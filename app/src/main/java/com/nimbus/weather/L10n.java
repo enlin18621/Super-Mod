@@ -1,0 +1,72 @@
+package com.nimbus.weather;
+import java.util.HashMap;
+import java.util.Map;
+final class L10n {
+    private static final Map<String,String[]> M = new HashMap<>();
+    static {
+        add("subtitle","Dein Tag auf einen Blick","Your day at a glance","你的每日概覽");
+        add("today","HEUTE","TODAY","今天");
+        add("city","Stadt","City","城市");
+        add("station","Haltestelle (Berlin / Brandenburg)","Stop (Berlin / Brandenburg)","車站（柏林／布蘭登堡）");
+        add("home","Zuhause (bleibt auf dem Gerät)","Home (stored on device)","住家地址（僅存於手機）");
+        add("university","Uni / Zieladresse","University / destination","大學／目的地");
+        add("plans","Weitere Pläne / Aktivität","Other plans / activity","其他計畫／活動");
+        add("language","Sprache","Language","語言");
+        add("fahrenheit","Fahrenheit (°F)","Fahrenheit (°F)","華氏（°F）");
+        add("save","Einstellungen speichern","Save settings","儲存設定");
+        add("refresh","Alles aktualisieren","Refresh everything","更新所有資訊");
+        add("permission","Kalenderzugriff erlauben","Allow calendar access","允許讀取行事曆");
+        add("weather","WETTER","WEATHER","天氣");
+        add("agenda","KALENDER","CALENDAR","行事曆");
+        add("transport","VERKEHR","TRANSPORT","交通");
+        add("sun","SONNENZEITEN","SUNRISE & SUNSET","日出與日落");
+        add("pack","HEUTE MITNEHMEN","WHAT TO BRING","今日攜帶物品");
+        add("maps","Google Maps: Route","Google Maps: directions","Google 地圖：導航");
+        add("calendarApp","Kalender öffnen","Open calendar","開啟行事曆");
+        add("newEvent","Termin erstellen","Create event","新增行程");
+        add("chatgpt","Mit ChatGPT planen","Plan with ChatGPT","用 ChatGPT 規劃");
+        add("source","Daten: Open-Meteo / VBB","Data: Open-Meteo / VBB","資料：Open-Meteo／VBB");
+        add("waiting","Tippe auf Aktualisieren.","Tap refresh to load.","點擊更新來載入。");
+        add("updated","Aktualisiert","Updated","更新時間");
+        add("feels","Gefühlt","Feels like","體感");
+        add("high","Hoch","High","最高");
+        add("low","Tief","Low","最低");
+        add("rain","Regen","Rain","降雨");
+        add("wind","Wind","Wind","風速");
+        add("uv","UV","UV","紫外線");
+        add("sunrise","Aufgang","Sunrise","日出");
+        add("sunset","Untergang","Sunset","日落");
+        add("noEvents","Keine Termine heute / Zugriff fehlt.","No events today / permission missing.","今天無行程／尚未授權。");
+        add("noStop","Haltestelle in den Einstellungen eingeben.","Enter a stop in settings.","請在設定輸入車站。");
+        add("notReady","Noch keine Daten","No data yet","尚無資料");
+        add("noPack","Schlüssel, Handy und Wasser","Keys, phone and water","鑰匙、手機和水");
+        add("umbrella","Regenschirm","Umbrella","雨傘");
+        add("jacket","Jacke","Jacket","外套");
+        add("sunScreen","Sonnenschutz","Sun protection","防曬用品");
+        add("water","Wasserflasche","Water bottle","水壺");
+        add("laptop","Laptop und Ladekabel","Laptop and charger","筆電與充電器");
+        add("notebook","Notizen und Stift","Notebook and pen","筆記本與筆");
+        add("studentId","Studierendenausweis","Student ID","學生證");
+        add("walking","Bequeme Schuhe","Comfortable shoes","舒適的鞋子");
+        add("tickets","Tickets und Ausweis","Tickets and ID","車票與身分證件");
+        add("passport","Reisepass prüfen","Check passport","檢查護照");
+        add("saved","Gespeichert. Neue Daten werden geladen …","Saved. Loading new data…","已儲存，正在更新……");
+        add("errorCity","Ort konnte nicht gefunden werden: ","Could not find city: ","找不到城市：");
+        add("calendarOK","Kalender ist verbunden.","Calendar connected.","已連結行事曆。");
+        add("calendarMissing","Kalenderzugriff ist freiwillig.","Calendar access is optional.","行事曆權限為選用。");
+        add("chatIntro","Erstelle mir eine konkrete Tagesplanung und Packliste auf Deutsch. Beachte meine Termine, das Wetter und den Verkehr. Frage nach fehlenden Details. Dies sind aktuelle Gerätedaten:","Give me a practical daily plan and packing list in English. Consider my events, weather and transit. Ask for missing details. These are current device details:","請根據以下手機最新資訊，以繁體中文規劃我的今天與攜帶清單，考慮行程、天氣和交通，缺少資訊時請提問：");
+        add("copied","Tagesdaten wurden kopiert. In ChatGPT einfügen.","Daily summary copied. Paste it into ChatGPT.","已複製今日資訊，請貼到 ChatGPT。");
+        add("clear","Klar","Clear","晴朗");
+        add("mostlyClear","Meist klar","Mostly clear","大致晴朗");
+        add("partly","Teilweise bewölkt","Partly cloudy","多雲時晴");
+        add("cloudy","Bedeckt","Overcast","陰天");
+        add("fog","Nebelig","Foggy","有霧");
+        add("drizzle","Nieselregen","Drizzle","毛毛雨");
+        add("rain","Regen","Rain","下雨");
+        add("snow","Schnee","Snow","下雪");
+        add("showers","Schauer","Showers","陣雨");
+        add("storm","Gewitter","Thunderstorms","雷雨");
+    }
+    private static void add(String k, String de, String en, String zh) {M.put(k,new String[]{de,en,zh});}
+    static String t(String lang,String k){String[] a=M.get(k);if(a==null)return k;return a["en".equals(lang)?1:"zh".equals(lang)?2:0];}
+}
