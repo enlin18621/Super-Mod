@@ -6,75 +6,84 @@ import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.widget.RemoteViews;
-import org.json.JSONArray;
 import org.json.JSONObject;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import org.json.JSONArray;
 import java.util.Locale;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class WeatherWidget extends AppWidgetProvider {
-    static final String ACTION_REFRESH = "com.nimbus.weather.REFRESH";
-    private static final ExecutorService EXEC = Executors.newSingleThreadExecutor();
-    static SharedPreferences prefs(Context c) { return c.getSharedPreferences("nimbus_settings", Context.MODE_PRIVATE); }
-    static void updateAll(Context context) { updateAll(context, null); }
-    static void updateAll(Context context, PendingResult pending) {
-        Context app = context.getApplicationContext();
-        AppWidgetManager manager = AppWidgetManager.getInstance(app);
-        int[] ids = manager.getAppWidgetIds(new ComponentName(app, WeatherWidget.class));
-        if (ids.length == 0) { if (pending != null) pending.finish(); return; }
-        SharedPreferences p = prefs(app);
-        RemoteViews loading = shell(app, p);
-        loading.setTextViewText(R.id.condition, "Updating forecast…");
-        manager.updateAppWidget(ids, loading);
-        EXEC.execute(() -> {
-            try {
-                JSONObject response = WeatherApi.forecast(
-                    Double.longBitsToDouble(p.getLong("lat", Double.doubleToRawLongBits(52.52))),
-                    Double.longBitsToDouble(p.getLong("lon", Double.doubleToRawLongBits(13.405))),
-                    p.getBoolean("fahrenheit", false));
-                JSONObject current = response.getJSONObject("current");
-                JSONObject daily = response.getJSONObject("daily");
-                String unit = p.getBoolean("fahrenheit", false) ? "°F" : "°C";
-                RemoteViews v = shell(app, p);
-                v.setTextViewText(R.id.temp, Math.round(current.getDouble("temperature_2m")) + "°");
-                v.setTextViewText(R.id.condition, WeatherApi.condition(current.optInt("weather_code", -1)));
-                v.setTextViewText(R.id.feels, "Feels like " + Math.round(current.getDouble("apparent_temperature")) + unit);
-                JSONArray hi = daily.getJSONArray("temperature_2m_max");
-                JSONArray lo = daily.getJSONArray("temperature_2m_min");
-                JSONArray rain = daily.optJSONArray("precipitation_probability_max");
-                v.setTextViewText(R.id.details, "H " + Math.round(hi.getDouble(0)) + "°  ·  L " + Math.round(lo.getDouble(0)) + "°  ·  Rain " + (rain == null || rain.isNull(0) ? "--" : rain.optInt(0)) + "%  ·  Wind " + Math.round(current.getDouble("wind_speed_10m")) + " km/h");
-                String now = new SimpleDateFormat("HH:mm", Locale.getDefault()).format(new Date());
-                v.setTextViewText(R.id.updated, "Updated " + now + " · Yr ↗ · Open-Meteo");
-                manager.updateAppWidget(ids, v);
-            } catch (Exception ex) {
-                RemoteViews error = shell(app, p);
-                error.setTextViewText(R.id.condition, "Weather unavailable");
-                error.setTextViewText(R.id.updated, "Tap ↻ to try again · Yr ↗");
-                manager.updateAppWidget(ids, error);
-            } finally { if (pending != null) pending.finish(); }
-        });
+    static final String ACTION_REFRESH="com.nimbus.weather.REFRESH";
+    static void updateAll(Context c){updateAll(c,null);}
+    static void updateAll(Context c,PendingResult pending){
+        Context app=c.getApplicationContext();
+        int[] ids=AppWidgetManager.getInstance(app).getAppWidgetIds(new ComponentName(app,WeatherWidget.class));
+        if(ids.length==0){if(pending!=null)pending.finish();return;}
+        try{
+            render(app,DashboardData.cached(app));
+            DashboardData.refresh(app,s->{try{render(app,s);}finally{if(pending!=null)pending.finish();}});
+        }catch(Exception e){if(pending!=null)pending.finish();}
     }
-    static RemoteViews shell(Context c, SharedPreferences p) {
-        RemoteViews v = new RemoteViews(c.getPackageName(), R.layout.widget_weather);
-        v.setTextViewText(R.id.city, p.getString("city", "Berlin").toUpperCase(Locale.getDefault()));
-        Intent forecast = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.yr.no/en/search?q=" + Uri.encode(p.getString("city", "Berlin"))));
-        forecast.addCategory(Intent.CATEGORY_BROWSABLE);
-        v.setOnClickPendingIntent(R.id.widget_root, PendingIntent.getActivity(c, 1, forecast, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE));
-        Intent settings = new Intent(c, MainActivity.class);
-        v.setOnClickPendingIntent(R.id.edit, PendingIntent.getActivity(c, 2, settings, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE));
-        Intent refresh = new Intent(c, WeatherWidget.class).setAction(ACTION_REFRESH);
-        v.setOnClickPendingIntent(R.id.refresh, PendingIntent.getBroadcast(c, 3, refresh, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE));
-        return v;
+    static void render(Context c,DashboardData.Snapshot snapshot){
+        Context app=c.getApplicationContext();
+        AppWidgetManager manager=AppWidgetManager.getInstance(app);
+        int[] ids=manager.getAppWidgetIds(new ComponentName(app,WeatherWidget.class));
+        if(ids.length==0)return;
+        RemoteViews v=new RemoteViews(app.getPackageName(),R.layout.widget_weather);
+        v.setTextViewText(R.id.city,Prefs.city(app).toUpperCase(Locale.ROOT));
+        JSONObject current=snapshot.weather==null?null:snapshot.weather.optJSONObject("current");
+        JSONObject daily=snapshot.weather==null?null:snapshot.weather.optJSONObject("daily");
+        String unit=Prefs.get(app).getBoolean("fahrenheit",false)?"°F":"°C";
+        if(current!=null){
+            v.setTextViewText(R.id.temp,DashboardData.degree(current.optDouble("temperature_2m",Double.NaN)));
+            v.setTextViewText(R.id.condition,L10n.cond(app,current.optInt("weather_code",-1)));
+            v.setTextViewText(R.id.feels,L10n.t(app,"feels")+": "+DashboardData.degree(current.optDouble("apparent_temperature",Double.NaN)));
+        }else {
+            v.setTextViewText(R.id.temp,"--°");v.setTextViewText(R.id.condition,"—");
+            v.setTextViewText(R.id.feels,L10n.t(app,"refresh"));
+        }
+        if(daily!=null){
+            JSONArray hi=daily.optJSONArray("temperature_2m_max"),lo=daily.optJSONArray("temperature_2m_min"),rain=daily.optJSONArray("precipitation_probability_max");
+            v.setTextViewText(R.id.details,L10n.t(app,"high")+" "+(hi==null?"--°":DashboardData.degree(hi.optDouble(0,Double.NaN)))+
+                "  ·  "+L10n.t(app,"low")+" "+(lo==null?"--°":DashboardData.degree(lo.optDouble(0,Double.NaN)))+
+                "  ·  ☂ "+(rain==null?"--":rain.optInt(0))+"%");
+            v.setTextViewText(R.id.sun,"↑ "+DashboardData.sunTime(snapshot.weather,"sunrise")+"     ↓ "+DashboardData.sunTime(snapshot.weather,"sunset"));
+        }else{v.setTextViewText(R.id.details,"—");v.setTextViewText(R.id.sun,"—");}
+        String upcoming=L10n.t(app,"calempty");
+        long now=System.currentTimeMillis()-15*60*1000L;
+        for(CalendarReader.Event e:snapshot.events){if(e.start>=now||e.allDay){upcoming=(e.allDay?L10n.t(app,"allday"):DashboardData.time(app,e.start))+" · "+e.title;break;}}
+        if(!CalendarReader.allowed(app))upcoming=L10n.t(app,"calpermission");
+        v.setTextViewText(R.id.nextEvent,"◷  "+upcoming);
+        String departure=L10n.t(app,"stopmissing");
+        JSONObject transit=snapshot.transit;
+        if(transit!=null){
+            JSONArray arr=transit.optJSONArray("departures");
+            if(arr!=null&&arr.length()>0){
+                JSONObject first=arr.optJSONObject(0);
+                if(first!=null){
+                    JSONObject line=first.optJSONObject("line");
+                    String when=first.optString("when",first.optString("plannedWhen",""));
+                    departure=(line==null?"":line.optString("name")+"  ")+
+                      (when.length()>15?when.substring(11,16):"—")+"  ·  "+first.optString("direction","");
+                }
+            }
+        }
+        v.setTextViewText(R.id.departure,"↗  "+departure);
+        v.setTextViewText(R.id.bring,"✓  "+(snapshot.bring.isEmpty()?"—":snapshot.bring.get(snapshot.bring.size()>1?1:0)));
+        v.setTextViewText(R.id.updated,(snapshot.updated>0?L10n.t(app,"updated")+" "+DashboardData.time(app,snapshot.updated)+" · ":"")+"Open-Meteo · VBB");
+        Intent openApp=new Intent(app,MainActivity.class);
+        v.setOnClickPendingIntent(R.id.widget_root,PendingIntent.getActivity(app,61,openApp,PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE));
+        v.setOnClickPendingIntent(R.id.edit,PendingIntent.getActivity(app,62,openApp,PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE));
+        Intent refresh=new Intent(app,WeatherWidget.class).setAction(ACTION_REFRESH);
+        v.setOnClickPendingIntent(R.id.refresh,PendingIntent.getBroadcast(app,63,refresh,PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE));
+        Intent yr=new Intent(Intent.ACTION_VIEW,Uri.parse("https://www.yr.no/en/search?q="+Uri.encode(Prefs.city(app))));
+        v.setOnClickPendingIntent(R.id.yr,PendingIntent.getActivity(app,64,yr,PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE));
+        manager.updateAppWidget(ids,v);
     }
-    @Override public void onUpdate(Context c, AppWidgetManager m, int[] ids) { updateAll(c); }
-    @Override public void onReceive(Context c, Intent intent) {
-        String action = intent.getAction();
-        if (ACTION_REFRESH.equals(action) || AppWidgetManager.ACTION_APPWIDGET_UPDATE.equals(action)) updateAll(c, goAsync());
-        else super.onReceive(c, intent);
+    @Override public void onReceive(Context c,Intent intent){
+        String action=intent.getAction();
+        if(ACTION_REFRESH.equals(action)||AppWidgetManager.ACTION_APPWIDGET_UPDATE.equals(action))
+            updateAll(c,goAsync());
+        else super.onReceive(c,intent);
     }
 }

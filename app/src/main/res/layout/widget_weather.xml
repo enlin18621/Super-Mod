@@ -1,17 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/widget_root" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:padding="16dp" android:gravity="center_vertical" android:background="@drawable/widget_bg">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/widget_root"
+    android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical"
+    android:padding="16dp" android:gravity="center_vertical" android:background="@drawable/widget_bg">
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
-        <TextView android:id="@+id/city" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="BERLIN" android:textSize="14sp" android:fontFamily="sans-serif-medium" android:singleLine="true" android:ellipsize="end" android:letterSpacing="0.1" android:textColor="#76DDD0"/>
-        <TextView android:id="@+id/edit" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="✎" android:paddingHorizontal="9dp" android:paddingVertical="2dp" android:textSize="19sp" android:textColor="#DDEAF5"/>
-        <TextView android:id="@+id/refresh" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="↻" android:paddingHorizontal="6dp" android:paddingVertical="2dp" android:textSize="23sp" android:textColor="#DDEAF5"/>
+        <TextView android:id="@+id/city" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+            android:text="BERLIN" android:textSize="14sp" android:textStyle="bold" android:singleLine="true"
+            android:ellipsize="end" android:letterSpacing="0.1" android:textColor="#76DDD0"/>
+        <TextView android:id="@+id/edit" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="✎" android:paddingHorizontal="9dp" android:paddingVertical="2dp" android:textSize="19sp" android:textColor="#DDEAF5"/>
+        <TextView android:id="@+id/refresh" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="↻" android:paddingHorizontal="6dp" android:paddingVertical="2dp" android:textSize="23sp" android:textColor="#DDEAF5"/>
     </LinearLayout>
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="3dp">
-        <TextView android:id="@+id/temp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--°" android:textSize="49sp" android:fontFamily="sans-serif-light" android:textColor="#FFFFFF"/>
-        <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="15dp">
-            <TextView android:id="@+id/condition" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Fetching forecast…" android:maxLines="1" android:ellipsize="end" android:textSize="16sp" android:textColor="#FFFFFF"/>
-            <TextView android:id="@+id/feels" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Feels like --°" android:textSize="12sp" android:textColor="#ACBED1"/>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="2dp">
+        <TextView android:id="@+id/temp" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="--°" android:textSize="47sp" android:fontFamily="sans-serif-light" android:textColor="#FFFFFF"/>
+        <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="14dp">
+            <TextView android:id="@+id/condition" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="—" android:maxLines="1" android:ellipsize="end" android:textSize="15sp" android:textColor="#FFFFFF"/>
+            <TextView android:id="@+id/feels" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="—" android:textSize="12sp" android:textColor="#ACBED1"/>
         </LinearLayout>
     </LinearLayout>
-    <TextView android:id="@+id/details" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="H --°  ·  L --°  ·  Rain --%  ·  Wind -- km/h" android:textSize="12sp" android:singleLine="true" android:ellipsize="end" android:textColor="#D2DFEC"/>
-    <TextView android:id="@+id/updated" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="end" android:layout_marginTop="6dp" android:text="Open Yr ↗  ·  Weather: Open-Meteo" android:textSize="10sp" android:textColor="#8FA8BD"/>
+    <TextView android:id="@+id/details" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:text="—" android:textSize="12sp" android:singleLine="true" android:ellipsize="end" android:textColor="#D2DFEC"/>
+    <TextView android:id="@+id/sun" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:text="—" android:layout_marginTop="3dp" android:textSize="12sp" android:textColor="#80D7CB"/>
+    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#395064" android:layout_marginTop="8dp" android:layout_marginBottom="7dp"/>
+    <TextView android:id="@+id/nextEvent" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:text="—" android:singleLine="true" android:ellipsize="end" android:textSize="13sp" android:textColor="#FFFFFF"/>
+    <TextView android:id="@+id/departure" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:text="—" android:singleLine="true" android:ellipsize="end" android:layout_marginTop="5dp" android:textSize="12sp" android:textColor="#B5CADB"/>
+    <TextView android:id="@+id/bring" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:text="—" android:singleLine="true" android:ellipsize="end" android:layout_marginTop="5dp" android:textSize="12sp" android:textColor="#8CE5C9"/>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:layout_marginTop="7dp" android:orientation="horizontal">
+        <TextView android:id="@+id/yr" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="YR ↗" android:paddingEnd="10dp" android:paddingVertical="2dp" android:textSize="11sp" android:textColor="#80D7CB"/>
+        <TextView android:id="@+id/updated" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+            android:gravity="end" android:text="Open-Meteo · VBB" android:textSize="10sp" android:textColor="#8FA8BD"/>
+    </LinearLayout>
 </LinearLayout>
