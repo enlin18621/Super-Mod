@@ -4,6 +4,9 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
+import android.content.ClipboardManager;
+import android.content.ClipData;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -46,6 +49,7 @@ public class MainActivity extends Activity {
     @Override protected void onNewIntent(Intent incoming){
         super.onNewIntent(incoming);setIntent(incoming);handleSharedText(incoming);
     }
+    private static String todayStamp(){return new SimpleDateFormat("yyyy-MM-dd",Locale.ROOT).format(new Date());}
     private int dp(float value){return (int)(getResources().getDisplayMetrics().density*value+.5f);}
     private GradientDrawable background(int color,int radius){
         GradientDrawable g=new GradientDrawable();g.setColor(color);g.setCornerRadius(dp(radius));return g;
@@ -118,6 +122,7 @@ public class MainActivity extends Activity {
         LinearLayout actions=card(L10n.t(this,"today"));
         button(actions,L10n.t(this,"refresh"),this::refreshAll);
         button(actions,L10n.t(this,"chatgpt"),this::shareToChatGpt);
+        button(actions,L10n.t(this,"paste"),this::pasteUpdate);
         actions.addView(text(L10n.t(this,"chatnote"),12,MUTED,false));
         statusText=text("",13,MINT,false);LinearLayout.LayoutParams statusParams=new LinearLayout.LayoutParams(-1,-2);
         statusParams.setMargins(0,dp(13),0,0);actions.addView(statusText,statusParams);
@@ -128,7 +133,7 @@ public class MainActivity extends Activity {
         homeInput=input(settings,L10n.t(this,"home"),p.getString("home",""),false);
         uniInput=input(settings,L10n.t(this,"uni"),p.getString("uni",""),false);
         stopInput=input(settings,L10n.t(this,"stop"),p.getString("stop",""),false);
-        plansInput=input(settings,L10n.t(this,"plans"),p.getString("plans",""),true);
+        plansInput=input(settings,L10n.t(this,"plans"),todayStamp().equals(p.getString("plans_day",""))?p.getString("plans",""):"",true);
         TextView language=text(L10n.t(this,"lang"),13,MINT,true);
         LinearLayout.LayoutParams labelParams=new LinearLayout.LayoutParams(-1,-2);labelParams.setMargins(0,dp(14),0,dp(6));settings.addView(language,labelParams);
         langSpinner=new Spinner(this);
@@ -211,7 +216,7 @@ public class MainActivity extends Activity {
         String requestedCity=cityInput.getText().toString().trim();
         SharedPreferences.Editor edit=p.edit().putString("home",homeInput.getText().toString().trim())
             .putString("uni",uniInput.getText().toString().trim()).putString("stop",stopInput.getText().toString().trim())
-            .putString("plans",plansInput.getText().toString()).putString("lang",LANGS[langSpinner.getSelectedItemPosition()])
+            .putString("plans",plansInput.getText().toString()).putString("plans_day",todayStamp()).putString("lang",LANGS[langSpinner.getSelectedItemPosition()])
             .putBoolean("fahrenheit",fahrenheit.isChecked()).putBoolean("share_address",shareAddress.isChecked());
         edit.apply();boolean languageChanged=!oldLang.equals(L10n.lang(this));
         if(!requestedCity.isEmpty()&&!requestedCity.equals(oldCity)){
@@ -256,7 +261,7 @@ public class MainActivity extends Activity {
             .append("\nSunset: ").append(DashboardData.sunTime(s.weather,"sunset"));
         for(CalendarReader.Event e:s.events)prompt.append("\nCalendar: ").append(e.allDay?"All day":DashboardData.time(this,e.start))
             .append(" ").append(e.title).append(e.location==null?"":" @ "+e.location);
-        prompt.append("\nPlans: ").append(Prefs.get(this).getString("plans",""))
+        prompt.append("\nPlans: ").append(todayStamp().equals(Prefs.get(this).getString("plans_day",""))?Prefs.get(this).getString("plans",""):"(not set today)")
             .append("\nVBB stop: ").append(Prefs.get(this).getString("stop",""));
         if(s.transit!=null){
             JSONArray departures=s.transit.optJSONArray("departures");
@@ -276,6 +281,16 @@ public class MainActivity extends Activity {
         Intent i=new Intent(Intent.ACTION_SEND);i.setType("text/plain");i.putExtra(Intent.EXTRA_TEXT,prompt.toString());
         Intent chat=new Intent(i);chat.setPackage("com.openai.chatgpt");
         try{startActivity(chat);}catch(ActivityNotFoundException ex){startActivity(Intent.createChooser(i,L10n.t(this,"chatgpt")));}
+    }
+    private void pasteUpdate(){
+        ClipboardManager clipboard=(ClipboardManager)getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipData data=clipboard==null?null:clipboard.getPrimaryClip();
+        CharSequence content=data!=null&&data.getItemCount()>0?data.getItemAt(0).coerceToText(this):null;
+        if(content==null||!content.toString().contains("NIMBUS_UPDATE:")){
+            statusText.setText(L10n.t(this,"pasteEmpty"));return;
+        }
+        Intent i=new Intent(Intent.ACTION_SEND);i.putExtra(Intent.EXTRA_TEXT,content.toString());
+        handleSharedText(i);
     }
     private void handleSharedText(Intent incoming){
         if(incoming==null||!Intent.ACTION_SEND.equals(incoming.getAction()))return;
@@ -297,7 +312,8 @@ public class MainActivity extends Activity {
         SharedPreferences.Editor edit=Prefs.get(this).edit();
         String[] textFields={"home","uni","stop","plans"};
         for(String key:textFields)if(json.has(key)&&!json.isNull(key))edit.putString(key,json.optString(key).substring(0,Math.min(4000,json.optString(key).length())));
-        if(json.has("city")&&!json.isNull("city"))edit.putString("pendingCity",json.optString("city"));
+        if(json.has("plans"))edit.putString("plans_day",todayStamp());
+        if(json.has("city")&&!json.isNull("city"))edit.putString("pendingCity",json.optString("city").substring(0,Math.min(150,json.optString("city").length())));
         if(json.has("fahrenheit"))edit.putBoolean("fahrenheit",json.optBoolean("fahrenheit",false));
         String lang=json.optString("lang","");if(lang.equals("de")||lang.equals("en")||lang.equals("zh-TW"))edit.putString("lang",lang);
         edit.apply();buildUi();render(DashboardData.cached(this));

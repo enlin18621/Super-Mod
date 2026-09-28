@@ -40,6 +40,8 @@ final class L10n {
         add("refresh","Alles aktualisieren","Refresh everything","更新全部");
         add("yr","Wetterbericht bei Yr ↗","Forecast at Yr ↗","前往 Yr 查看天氣 ↗");
         add("chatgpt","Mit ChatGPT planen ↗","Plan with ChatGPT ↗","使用 ChatGPT 規劃 ↗");
+        add("paste","ChatGPT-Update aus Zwischenablage","Import ChatGPT update from clipboard","從剪貼簿匯入 ChatGPT 更新");
+        add("pasteEmpty","Kein NIMBUS_UPDATE in der Zwischenablage gefunden.","No NIMBUS_UPDATE found on clipboard.","剪貼簿找不到 NIMBUS_UPDATE。");
         add("chatnote","Öffnet ChatGPT mit deinem Tageskontext. KI-Antworten werden nicht automatisch ins Widget übernommen.","Shares today's context with ChatGPT. AI replies are not automatically imported into the widget.","將今日資訊傳給 ChatGPT。AI 回覆不會自動匯入小工具。");
         add("updating","Aktualisiere Wetter, Termine und Verkehr …","Refreshing weather, calendar and transport …","正在更新天氣、行事曆與交通…");
         add("saved","Einstellungen gespeichert.","Settings saved.","設定已儲存。");

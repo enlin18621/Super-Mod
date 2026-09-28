@@ -26,7 +26,9 @@ final class DayPlanner {
             JSONArray uv=daily.optJSONArray("uv_index_max");
             if(uv!=null&&uv.optDouble(0,0)>=5)items.add(L10n.t(c,"bringSun"));
         }
-        StringBuilder activities=new StringBuilder(Prefs.get(c).getString("plans",""));
+        String stamp=new java.text.SimpleDateFormat("yyyy-MM-dd",Locale.ROOT).format(new java.util.Date());
+        String plans=stamp.equals(Prefs.get(c).getString("plans_day",""))?Prefs.get(c).getString("plans",""):"";
+        StringBuilder activities=new StringBuilder(plans);
         for(CalendarReader.Event event:events)activities.append(' ').append(event.title).append(' ').append(event.location);
         String all=activities.toString().toLowerCase(Locale.ROOT);
         if(matches(all,"uni","campus","jura","lecture","vorlesung","seminar","tutorial","exam","prüfung","university","大學","大学","上課","考試"))
