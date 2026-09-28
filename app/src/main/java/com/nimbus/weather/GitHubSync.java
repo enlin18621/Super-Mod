@@ -67,6 +67,19 @@ final class GitHubSync {
             return new JSONObject(read(conn));
         }finally{conn.disconnect();}
     }
+    private static void ensurePrivate(Context c)throws Exception{
+        HttpURLConnection conn=(HttpURLConnection)new URL("https://api.github.com/repos/"+repo(c)).openConnection();
+        conn.setConnectTimeout(11000);conn.setReadTimeout(14000);conn.setInstanceFollowRedirects(false);
+        conn.setRequestProperty("Authorization","Bearer "+GitHubTokenVault.read(c));
+        conn.setRequestProperty("Accept","application/vnd.github+json");
+        conn.setRequestProperty("X-GitHub-Api-Version","2022-11-28");
+        conn.setRequestProperty("User-Agent","NimbusPersonalSync/1.0 Android");
+        try {
+            if(conn.getResponseCode()!=200)throw new Exception("Private repository not accessible: HTTP "+conn.getResponseCode());
+            JSONObject repo=new JSONObject(read(conn));
+            if(!repo.optBoolean("private",false))throw new Exception("Sync requires a PRIVATE GitHub repository. Public repos are blocked.");
+        }finally{conn.disconnect();}
+    }
     private static String today(){return new SimpleDateFormat("yyyy-MM-dd",Locale.ROOT).format(new Date());}
     private static String limit(JSONObject object,String key,int max){
         if(!object.has(key)||object.isNull(key))return null;
@@ -106,6 +119,7 @@ final class GitHubSync {
         Context app=c.getApplicationContext();
         EXEC.execute(()->{
             try{
+                ensurePrivate(app);
                 JSONObject file=remoteFile(app,REMOTE_CONFIG);
                 if(file==null)throw new Exception("Create nimbus-state.json in your PRIVATE sync repository first");
                 String encoded=file.optString("content","").replace("\n","");
@@ -123,9 +137,11 @@ final class GitHubSync {
     }
     static void push(Context c,DashboardData.Snapshot snapshot){
         if(!enabled(c)||!Prefs.get(c).getBoolean("sync_device_report",false))return;
+        if(System.currentTimeMillis()-Prefs.get(c).getLong("sync_pushed",0)<30*60*1000L)return;
         Context app=c.getApplicationContext();
         EXEC.execute(()->{
             try{
+                ensurePrivate(app);
                 SharedPreferences p=Prefs.get(app);
                 JSONObject report=new JSONObject().put("version",1).put("observed_at",System.currentTimeMillis())
                     .put("weather_city",Prefs.city(app))
