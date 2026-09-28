@@ -68,7 +68,7 @@ public class MainActivity extends Activity {
         TextView v=text("—",15,MUTED,false);parent.addView(v);return v;
     }
     private Button button(LinearLayout parent,String label,Runnable run){
-        Button b=new Button(this);b.setText(label);b.setTextAllCaps(false);b.setTextColor(BACKGROUND);
+        Button b=new Button(this);b.setText(label);b.setAllCaps(false);b.setTextColor(BACKGROUND);
         b.setBackgroundTintList(ColorStateList.valueOf(MINT));
         LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,dp(47));lp.setMargins(0,dp(8),0,0);parent.addView(b,lp);
         b.setOnClickListener(v->run.run());return b;
