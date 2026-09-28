@@ -77,6 +77,39 @@ final class L10n {
         add("snowy","Schnee","Snow","下雪");
         add("foggy","Nebel","Fog","起霧");
         add("thunder","Gewitter","Thunderstorms","雷雨");
+        add("gpsTitle","Mein aktueller Standort","My current location","目前位置");
+        add("gpsRefresh","Standort jetzt aktualisieren","Update current location","更新目前位置");
+        add("gpsCheck","Standort für Wetter, Haltestellen und Routen nutzen (optional)","Use location for weather, nearby stops and routes (optional)","使用位置提供天氣、附近車站與路線（選用）");
+        add("gpsMissing","Standort aus oder veraltet. Berechtigung prüfen.","Location disabled or outdated. Check permissions.","位置功能未啟用或資料過舊，請檢查權限。");
+        add("routeTitle","Wann sollte ich los?","When should I leave?","我應該何時出發？");
+        add("routeDuration","VBB-Fahrzeit zur Uni","VBB journey time to university","VBB 至大學車程");
+        add("leaveAt","Spätestens los um","Leave by","最晚出發");
+        add("leaveNow","Jetzt los! Verbindung prüfen.","Leave now! Check the connection.","現在出發！請再次確認車次。");
+        add("noRoute","Keine verifizierte VBB-Route. Standort, Ziel und Kalenderort prüfen.","No verified VBB route. Check location, destination and calendar location.","沒有已驗證的 VBB 路線，請檢查位置、目的地與行事曆地點。");
+        add("arrivalAt","Ankunft","Arrival","抵達");
+        add("checkedAt","Geprüft","Checked","查詢時間");
+        add("vbbRoutes","VBB-Verbindung / Quelldaten ↗","VBB journey / source data ↗","VBB 行程／來源資料 ↗");
+        add("vbbSource","VBB-Datenquelle ↗","VBB data source ↗","VBB 資料來源 ↗");
+        add("weatherApi","Open-Meteo-Rohdaten ↗","Open-Meteo source data ↗","Open-Meteo 來源資料 ↗");
+        add("alertsCheck","Automatisch etwa alle 30 Min. prüfen und wichtige Hinweise senden (Android kann verzögern)","Check about every 30 min and send useful alerts (Android may delay)","約每 30 分鐘更新並發送重要提醒（Android 可能延遲）");
+        add("leaveAlert","Zeit zum Losgehen","Time to leave","該出發了");
+        add("rainAlert","Heute Regenrisiko","High chance of rain today","今天降雨機率較高");
+        add("aiTitle","KI-Tagesbriefing (optional)","AI daily briefing (optional)","AI 每日簡報（選用）");
+        add("aiNow","Jetzt KI-Briefing abrufen (separate API-Kosten)","Ask AI now (separately billed API)","現在取得 AI 建議（API 另計費）");
+        add("aiCheck","KI-Briefing automatisch (max. 3 API-Anfragen/Tag; überträgt Termine/Pläne)","Automatic AI briefing (max 3 API requests/day; shares events/plans)","自動 AI 建議（每日最多 3 次 API 請求，會傳送行程與計畫）");
+        add("aiPrivacy","Nicht dein ChatGPT-Abo oder dessen Gedächtnis. Eigener OpenAI-API-Schlüssel nötig; Kalender/Pläne werden an OpenAI gesendet.","Not your ChatGPT subscription or memory. Requires your own OpenAI API key; calendar and plans are sent to OpenAI.","與 ChatGPT 訂閱／記憶不同；須自備 OpenAI API 金鑰，行程與計畫將傳送至 OpenAI。");
+        add("apiKey","OpenAI-API-Schlüssel (nur lokal verschlüsselt; hier niemals teilen)","OpenAI API key (encrypted locally; never share here)","OpenAI API 金鑰（僅在手機加密儲存，勿在此分享）");
+        add("apiHint","API-Schlüssel in Einstellungen eingeben; separates API-Konto nötig.","Enter an API key in Settings; a separate API account is required.","請於設定輸入 API 金鑰，須另有 API 帳戶。");
+        add("apiSaved","Schlüssel gespeichert – leer lassen, um ihn zu behalten","Key saved – leave blank to keep it","金鑰已儲存，留空即可保留");
+        add("removeKey","Gespeicherten API-Schlüssel löschen","Remove saved API key","刪除已儲存的 API 金鑰");
+        add("keyRemoved","API-Schlüssel gelöscht","API key removed","已刪除 API 金鑰");
+        add("keyError","API-Schlüssel konnte nicht verschlüsselt werden","Could not encrypt API key","無法加密 API 金鑰");
+        add("aiRunning","KI analysiert aktuelle Daten …","AI analyzing current data …","AI 正在分析目前資料…");
+        add("aiNotConfigured","Ohne API-Schlüssel: lokale Hinweise sind aktiv. Alternativ ChatGPT öffnen.","Without API key: local guidance still works. Or open ChatGPT.","未設定 API 金鑰：仍有本機建議，亦可開啟 ChatGPT。");
+        add("aiError","KI-Anfrage fehlgeschlagen:","AI request failed:","AI 請求失敗：");
+        add("aiStale","Älteres KI-Briefing (Daten prüfen):","Older AI briefing (verify current facts):","較早的 AI 簡報（請確認最新資訊）：");
+        add("aiAlert","Neues KI-Tagesbriefing","New AI daily briefing","新的 AI 每日建議");
+
     }
     static String lang(Context c) { return Prefs.get(c).getString("lang","de"); }
     static String t(Context c, String key) {
