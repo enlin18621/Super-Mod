@@ -42,7 +42,7 @@ public class MainActivity extends Activity {
     private static final ExecutorService SAVE_EXECUTOR=Executors.newSingleThreadExecutor();
     private LinearLayout root;private TextView weatherText,sunText,eventsText,transitText,bringText,statusText,locationText,routeText,aiText;
     private EditText cityInput,homeInput,uniInput,stopInput,plansInput,apiKeyInput,syncRepoInput,syncTokenInput;
-    private Spinner langSpinner;private CheckBox fahrenheit,shareAddress,gpsCheck,alertsCheck,aiCheck,aiShareLocations,syncCheck,syncReportCheck,syncEventsCheck,syncPrivateCheck,syncGpsCheck;
+    private Spinner langSpinner;private CheckBox fahrenheit,shareAddress,gpsCheck,alertsCheck,aiCheck,aiShareLocations,syncCheck,syncReportCheck,syncEventsCheck,syncPrivateCheck,syncGpsCheck,syncWriteCheck;
     @Override public void onCreate(Bundle state){
         super.onCreate(state);buildUi();render(DashboardData.cached(this));handleSharedText(getIntent());BackgroundJob.updateSchedule(this);refreshAll();
     }
@@ -202,6 +202,8 @@ public class MainActivity extends Activity {
         syncTokenInput=input(syncCard,L10n.t(this,"syncToken"),"",false);
         syncTokenInput.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_PASSWORD);
         syncTokenInput.setHint(GitHubTokenVault.read(this).isEmpty()?L10n.t(this,"syncTokenHint"):L10n.t(this,"apiSaved"));
+        syncWriteCheck=new CheckBox(this);syncWriteCheck.setText(L10n.t(this,"syncWriteCheck"));syncWriteCheck.setTextColor(WHITE);
+        syncWriteCheck.setChecked(p.getBoolean("sync_write_settings",false));syncCard.addView(syncWriteCheck);
         syncReportCheck=new CheckBox(this);syncReportCheck.setText(L10n.t(this,"syncReportCheck"));syncReportCheck.setTextColor(WHITE);
         syncReportCheck.setChecked(p.getBoolean("sync_device_report",false));syncCard.addView(syncReportCheck);
         syncEventsCheck=new CheckBox(this);syncEventsCheck.setText(L10n.t(this,"syncEventsCheck"));syncEventsCheck.setTextColor(WHITE);
@@ -214,10 +216,10 @@ public class MainActivity extends Activity {
         button(syncCard,L10n.t(this,"syncStop"),()->{
             Prefs.get(this).edit().putBoolean("sync_enabled",false).putBoolean("sync_device_report",false)
                 .putBoolean("sync_share_events",false).putBoolean("sync_share_private",false)
-                .putBoolean("sync_share_precise_gps",false).apply();
+                .putBoolean("sync_share_precise_gps",false).putBoolean("sync_write_settings",false).apply();
             GitHubTokenVault.remove(this);syncTokenInput.setText("");syncCheck.setChecked(false);
             syncReportCheck.setChecked(false);syncEventsCheck.setChecked(false);syncPrivateCheck.setChecked(false);
-            syncGpsCheck.setChecked(false);BackgroundJob.updateSchedule(this);
+            syncGpsCheck.setChecked(false);syncWriteCheck.setChecked(false);BackgroundJob.updateSchedule(this);
             statusText.setText(L10n.t(this,"syncStopped"));
         });
         button(settings,L10n.t(this,"save"),this::saveSettings);
@@ -337,6 +339,7 @@ public class MainActivity extends Activity {
             .putString("plans",plansInput.getText().toString()).putString("plans_day",todayStamp()).putString("lang",LANGS[langSpinner.getSelectedItemPosition()])
             .putBoolean("fahrenheit",fahrenheit.isChecked()).putBoolean("share_address",shareAddress.isChecked());
         edit.putBoolean("sync_enabled",syncCheck.isChecked()).putString("sync_repo",syncRepoInput.getText().toString().trim())
+            .putBoolean("sync_write_settings",syncWriteCheck.isChecked())
             .putBoolean("sync_device_report",syncReportCheck.isChecked())
             .putBoolean("sync_share_events",syncEventsCheck.isChecked())
             .putBoolean("sync_share_private",syncPrivateCheck.isChecked())
@@ -372,6 +375,8 @@ public class MainActivity extends Activity {
                         .putLong("lat",Double.doubleToRawLongBits(city.getDouble("latitude")))
                         .putLong("lon",Double.doubleToRawLongBits(city.getDouble("longitude")))
                         .remove("weather_cache").remove("pendingCity").apply();
+                    if(GitHubSync.enabled(this)&&p.getBoolean("sync_write_settings",false))
+                        GitHubSync.pushSettings(this,(ok,message)->runOnUiThread(()->statusText.setText(ok?L10n.t(this,"syncSuccess"):L10n.t(this,"syncError")+": "+message)));
                     runOnUiThread(()->{buildUi();refreshAll();});
                 }catch(Exception ex){
                     runOnUiThread(()->statusText.setText(L10n.t(this,"error")+" "+ex.getMessage()));
@@ -381,6 +386,8 @@ public class MainActivity extends Activity {
             p.edit().remove("pendingCity").apply();
             if(languageChanged)buildUi();
             statusText.setText(L10n.t(this,"saved"));
+            if(GitHubSync.enabled(this)&&p.getBoolean("sync_write_settings",false))
+                GitHubSync.pushSettings(this,(ok,message)->runOnUiThread(()->statusText.setText(ok?L10n.t(this,"syncSuccess"):L10n.t(this,"syncError")+": "+message)));
             refreshAll();
         }
     }
