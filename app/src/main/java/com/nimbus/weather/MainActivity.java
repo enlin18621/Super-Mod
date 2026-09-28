@@ -225,12 +225,29 @@ public class MainActivity extends Activity {
             }
             eventsText.setText(events.toString().trim());
         }
+        android.location.Location location=GeoRoute.remembered(this);
+        if(Prefs.get(this).getBoolean("use_gps",false)&&location!=null)
+            locationText.setText(String.format(Locale.ROOT,"%.4f°, %.4f° · %s %s",
+                location.getLatitude(),location.getLongitude(),L10n.t(this,"updated"),DashboardData.time(this,location.getTime())));
+        else locationText.setText(L10n.t(this,"gpsMissing"));
+        if(s.route!=null){
+            StringBuilder route=new StringBuilder(GeoRoute.shortRoute(this,s.route));
+            route.append("\n").append(s.route.optString("destination",""));
+            if(s.route.optLong("arrival",0)>0)route.append("\n").append(L10n.t(this,"arrivalAt")).append(" ").append(DashboardData.time(this,s.route.optLong("arrival")));
+            if(s.routeUpdated>0)route.append("\n").append(L10n.t(this,"checkedAt")).append(" ").append(DashboardData.time(this,s.routeUpdated));
+            routeText.setText(route.toString());
+        }else routeText.setText(L10n.t(this,"noRoute"));
+        String advice=Prefs.get(this).getString("ai_advice","");
+        long at=Prefs.get(this).getLong("ai_updated",0);
+        aiText.setText(advice.isEmpty()?L10n.t(this,"aiNotConfigured"):
+            (System.currentTimeMillis()-at>12*60*60*1000L?L10n.t(this,"aiStale")+"\n":"")+advice+
+            "\n"+L10n.t(this,"checkedAt")+" "+DashboardData.time(this,at));
         String stop=Prefs.get(this).getString("stop","").trim();
-        if(stop.isEmpty())transitText.setText(L10n.t(this,"stopmissing"));
+        if(stop.isEmpty() && s.transit==null)transitText.setText(L10n.t(this,"stopmissing"));
         else if(s.transit==null||s.transit.optJSONArray("departures")==null)transitText.setText(L10n.t(this,"departuresempty"));
         else{
             JSONArray departures=s.transit.optJSONArray("departures");
-            StringBuilder result=new StringBuilder(stop).append("\n\n");
+            StringBuilder result=new StringBuilder(s.transit.optString("selectedStop",stop)).append("\n\n");
             for(int i=0;i<Math.min(4,departures.length());i++){
                 JSONObject d=departures.optJSONObject(i);if(d==null)continue;
                 JSONObject line=d.optJSONObject("line");
@@ -249,8 +266,19 @@ public class MainActivity extends Activity {
     }
     private void refreshAll(){
         statusText.setText(L10n.t(this,"updating"));
+        if(Prefs.get(this).getBoolean("use_gps",false)&&GeoRoute.permitted(this)){
+            GeoRoute.requestCurrent(this,found->fetchFresh());return;
+        }
+        fetchFresh();
+    }
+    private void fetchFresh(){
         DashboardData.refresh(this,s->{
             WeatherWidget.render(this,s);
+            ProactiveAlerts.evaluate(this,s);
+            AiBridge.maybeAutomatic(this,s,()->runOnUiThread(()->{
+                render(DashboardData.cached(this));
+                WeatherWidget.render(this,DashboardData.cached(this));
+            }));
             runOnUiThread(()->render(s));
         });
     }
@@ -261,7 +289,21 @@ public class MainActivity extends Activity {
             .putString("uni",uniInput.getText().toString().trim()).putString("stop",stopInput.getText().toString().trim())
             .putString("plans",plansInput.getText().toString()).putString("plans_day",todayStamp()).putString("lang",LANGS[langSpinner.getSelectedItemPosition()])
             .putBoolean("fahrenheit",fahrenheit.isChecked()).putBoolean("share_address",shareAddress.isChecked());
-        edit.apply();boolean languageChanged=!oldLang.equals(L10n.lang(this));
+        edit.putBoolean("use_gps",gpsCheck.isChecked()).putBoolean("auto_alerts",alertsCheck.isChecked())
+            .putBoolean("ai_auto",aiCheck.isChecked());
+        edit.apply();
+        String key=apiKeyInput.getText().toString().trim();
+        if(!key.isEmpty()){
+            try{SafeKeyStore.save(this,key);apiKeyInput.setText("");}
+            catch(Exception ex){statusText.setText(L10n.t(this,"keyError"));}
+        }
+        BackgroundJob.updateSchedule(this);
+        if(gpsCheck.isChecked()&&!GeoRoute.permitted(this))
+            requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION,Manifest.permission.ACCESS_FINE_LOCATION},LOCATION_PERMISSION);
+        if(alertsCheck.isChecked()&&android.os.Build.VERSION.SDK_INT>=33 &&
+            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)!=PackageManager.PERMISSION_GRANTED)
+            requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS},NOTIFICATION_PERMISSION);
+        boolean languageChanged=!oldLang.equals(L10n.lang(this));
         if(!requestedCity.isEmpty()&&!requestedCity.equals(oldCity)){
             statusText.setText(L10n.t(this,"updating"));
             SAVE_EXECUTOR.execute(()->{
@@ -290,7 +332,11 @@ public class MainActivity extends Activity {
         if(destination.trim().isEmpty()){statusText.setText(L10n.t(this,"uni"));return;}
         Uri.Builder uri=Uri.parse("https://www.google.com/maps/dir/").buildUpon()
             .appendQueryParameter("api","1").appendQueryParameter("destination",destination).appendQueryParameter("travelmode","transit");
-        String home=p.getString("home","");if(!home.trim().isEmpty())uri.appendQueryParameter("origin",home);
+        String home=p.getString("home","");
+        if(Prefs.get(this).getBoolean("use_gps",false)&&GeoRoute.remembered(this)!=null){
+            android.location.Location gps=GeoRoute.remembered(this);
+            uri.appendQueryParameter("origin",gps.getLatitude()+","+gps.getLongitude());
+        }else if(!home.trim().isEmpty())uri.appendQueryParameter("origin",home);
         startActivity(new Intent(Intent.ACTION_VIEW,uri.build()));
     }
     private void shareToChatGpt(){
@@ -316,6 +362,11 @@ public class MainActivity extends Activity {
                 prompt.append(line==null?"":line.optString("name")).append(" → ").append(d.optString("direction"));
             }
         }
+        if(s.route!=null)prompt.append("\nVBB recommended departure: ").append(GeoRoute.shortRoute(this,s.route))
+            .append("; checked ").append(new Date(s.routeUpdated));
+        prompt.append("\nOpen-Meteo forecast checked at ").append(new Date(s.weatherUpdated))
+            .append("; VBB checked at ").append(new Date(s.transitUpdated))
+            .append(". Verify time-sensitive details with source websites.");
         if(Prefs.get(this).getBoolean("share_address",false)){
             prompt.append("\nHome address: ").append(Prefs.get(this).getString("home",""))
                 .append("\nUniversity/destination: ").append(Prefs.get(this).getString("uni",""));
@@ -362,8 +413,23 @@ public class MainActivity extends Activity {
         edit.apply();buildUi();render(DashboardData.cached(this));
         statusText.setText(L10n.t(this,"imported"));
     }
+    private void openUrl(String url){startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse(url)));}
+    private void askAiNow(){
+        if(SafeKeyStore.read(this).isEmpty()){statusText.setText(L10n.t(this,"apiHint"));return;}
+        aiText.setText(L10n.t(this,"aiRunning"));
+        AiBridge.request(this,DashboardData.cached(this),(advice,error)->runOnUiThread(()->{
+            if(!advice.isEmpty()){aiText.setText(advice);WeatherWidget.render(this,DashboardData.cached(this));}
+            else aiText.setText(L10n.t(this,"aiError")+" "+error);
+        }));
+    }
     @Override public void onRequestPermissionsResult(int request,String[] permissions,int[] grants){
         super.onRequestPermissionsResult(request,permissions,grants);
         if(request==CALENDAR_PERMISSION)refreshAll();
+        else if(request==LOCATION_PERMISSION){
+            boolean allowed=GeoRoute.permitted(this);
+            if(!allowed)Prefs.get(this).edit().putBoolean("use_gps",false).apply();
+            else Prefs.get(this).edit().putBoolean("use_gps",true).apply();
+            buildUi();refreshAll();
+        }else if(request==NOTIFICATION_PERMISSION)BackgroundJob.updateSchedule(this);
     }
 }
