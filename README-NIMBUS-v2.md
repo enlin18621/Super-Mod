@@ -1,20 +1,13 @@
-# Nimbus Alltag / Nimbus Daily — v2
+# Nimbus Alltag v2 — mobile daily dashboard
 
-Personal Android home-screen dashboard. Default language German, switchable to English and Traditional Chinese (繁體中文).
+Source is on **nimbus-dashboard-v2**, isolated from the repository's unrelated main branch and the Nimbus Weather v1 build.
 
-## Included
-- Live weather, feels-like temperature, daily high/low, rain probability, humidity, wind, UV index, local sunrise and sunset from Open-Meteo.
-- Optional Android **device calendar** integration (read-only, after READ_CALENDAR permission). It displays the phone's synced calendar events today. Your Google account may need Calendar sync enabled on the phone.
-- Optional VBB Berlin/Brandenburg departures from an editable stop name. Service provided by the independent v6.vbb.transport.rest proxy, NOT an official VBB app. Delays are real-time when the upstream service provides them.
-- Rule-based packing suggestions combining weather, today's calendar event titles and your typed plans. The refresh button refreshes weather + departures + device calendar + suggestions.
-- Editable on-device home and university addresses (route opens Google Maps); city, stop, today's plans, °C/°F.
-- German / English / Traditional Chinese dashboard and widget.
-- ChatGPT button sends today's context through Android's Share Intent, without sharing private addresses unless you opt in.
-- ChatGPT-to-app *manual* data import: share `NIMBUS_UPDATE: {"plans":"Uni 10 Uhr","home":"example address"}` as text to Nimbus Alltag, inspect the confirmation prompt, then confirm. New imported weather cities require the app's Save button to geocode correctly.
+**Features:** Open-Meteo weather, daily max/min, sunrise/sunset, UV index, wind, rainfall risk and humidity; optional read-only phone calendar; VBB Berlin/Brandenburg stop departures; rule-based today packing suggestions from weather, calendar titles and user plans; locally editable city, home, university destination and stop; Google Maps directions; German, English and Traditional Chinese; ChatGPT handoff via Android share; opt-in addresses in share; confirmed NIMBUS_UPDATE JSON import from Android Share.
 
-## Important limitations
-No autonomous ChatGPT agent runs within the app: no OpenAI API backend/OAuth bridge or remote conversation access is configured. Android's Update button performs deterministic, explainable rules, not ChatGPT reasoning. ChatGPT memory and the app's local data are **not automatically synchronized**. Do not put your home address, calendars, passwords, or tokens in this PUBLIC GitHub repository or GitHub Actions logs. The app's SharedPreferences stay on your device and Android backup is disabled. No notifications or route-planning engine are included. VBB only covers Berlin/Brandenburg; tapping the Maps button opens transit directions for any saved address.
+**Privacy:** Addresses and plans stay in on-device SharedPreferences, with Android backups disabled. No user addresses are committed to GitHub. The repository is public: never commit your personal schedule, secrets, addresses or OpenAI API credentials here. Android READ_CALENDAR only after runtime permission.
 
-Built as Android debug APK, using installed debug signature for personal testing. This build has not been tested on a physical device.
+**Not yet implemented:** ChatGPT API backend, autonomous ChatGPT reasoning on app refresh, automatic push from ChatGPT conversation to app, or permanent ChatGPT memory synchronization. The app's Refresh button executes live API reads and rule-based recommendations. To ask ChatGPT for daily reasoning, use the separate ChatGPT button. To import ChatGPT-generated updates, ask for a line `NIMBUS_UPDATE: {"plans":"Uni ab 10 Uhr","home":"[your private address]"}`, share that text to Nimbus Alltag, review the confirmation dialog, then save if the weather city changed. An always-on two-way integration requires an authenticated private backend.
 
-Build: GitHub Actions → Build Nimbus Weather APK → artifact `NimbusAlltag-v2-debug-APK`. APK has the same Android applicationId as the v1 APK; Android may refuse an in-place upgrade if the debug signing key differs. If that happens, back up any v1 settings and uninstall v1 before installing v2.
+**Installation:** Download Actions artifact `NimbusAlltag-v2-debug-APK`, unzip to `app-debug.apk`, install on Android. This v2 uses a separate package `com.nimbus.daily` so it can be tested alongside v1 without uninstalling or losing v1 data. Add a 4×3 home screen widget; open the app to edit settings.
+
+API references: https://open-meteo.com/en/docs ; https://v6.vbb.transport.rest/api.html ; https://developer.android.com/reference/android/provider/CalendarContract.Instances
