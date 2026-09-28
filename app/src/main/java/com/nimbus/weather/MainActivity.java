@@ -36,15 +36,15 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class MainActivity extends Activity {
-    private static final int CALENDAR_PERMISSION=41;
+    private static final int CALENDAR_PERMISSION=41, LOCATION_PERMISSION=42, NOTIFICATION_PERMISSION=43;
     private static final int BACKGROUND=0xff101d2d, PANEL=0xff1a2c40, WHITE=0xfff4f8fd, MINT=0xff78ddcf, MUTED=0xffb0c5d8;
     private static final String[] LANGS={"de","en","zh-TW"};
     private static final ExecutorService SAVE_EXECUTOR=Executors.newSingleThreadExecutor();
-    private LinearLayout root;private TextView weatherText,sunText,eventsText,transitText,bringText,statusText;
-    private EditText cityInput,homeInput,uniInput,stopInput,plansInput;
-    private Spinner langSpinner;private CheckBox fahrenheit,shareAddress;
+    private LinearLayout root;private TextView weatherText,sunText,eventsText,transitText,bringText,statusText,locationText,routeText,aiText;
+    private EditText cityInput,homeInput,uniInput,stopInput,plansInput,apiKeyInput;
+    private Spinner langSpinner;private CheckBox fahrenheit,shareAddress,gpsCheck,alertsCheck,aiCheck;
     @Override public void onCreate(Bundle state){
-        super.onCreate(state);buildUi();render(DashboardData.cached(this));handleSharedText(getIntent());refreshAll();
+        super.onCreate(state);buildUi();render(DashboardData.cached(this));handleSharedText(getIntent());BackgroundJob.updateSchedule(this);refreshAll();
     }
     @Override protected void onNewIntent(Intent incoming){
         super.onNewIntent(incoming);setIntent(incoming);handleSharedText(incoming);
@@ -99,11 +99,28 @@ public class MainActivity extends Activity {
         LinearLayout forecastCard=card("☀  "+L10n.t(this,"weather")+" · "+Prefs.city(this));
         weatherText=text("—",22,WHITE,true);forecastCard.addView(weatherText);
         addSpace(forecastCard,6);sunText=content(forecastCard);
+        button(forecastCard,L10n.t(this,"weatherApi"),()->{
+            android.location.Location gps=Prefs.get(this).getBoolean("weather_gps",false)?GeoRoute.remembered(this):null;
+            double lat=gps!=null?gps.getLatitude():Prefs.lat(this);
+            double lon=gps!=null?gps.getLongitude():Prefs.lon(this);
+            openUrl("https://api.open-meteo.com/v1/forecast?latitude="+lat+"&longitude="+lon+
+                "&current=temperature_2m,weather_code&daily=sunrise,sunset,precipitation_probability_max&timezone=auto");
+        });
         button(forecastCard,L10n.t(this,"yr"),()->{
             Intent i=new Intent(Intent.ACTION_VIEW,Uri.parse("https://www.yr.no/en/search?q="+Uri.encode(Prefs.city(this))));
             startActivity(i);
         });
 
+        LinearLayout locationCard=card("◎  "+L10n.t(this,"gpsTitle"));
+        locationText=content(locationCard);
+        button(locationCard,L10n.t(this,"gpsRefresh"),()->{
+            if(!GeoRoute.permitted(this)){
+                requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION,Manifest.permission.ACCESS_FINE_LOCATION},LOCATION_PERMISSION);
+            }else{
+                Prefs.get(this).edit().putBoolean("use_gps",true).apply();
+                GeoRoute.requestCurrent(this,ok->refreshAll());
+            }
+        });
         LinearLayout calendarCard=card("▣  "+L10n.t(this,"calendar"));
         eventsText=content(calendarCard);
         button(calendarCard,L10n.t(this,"calpermission"),()->{
@@ -113,12 +130,24 @@ public class MainActivity extends Activity {
 
         LinearLayout transitCard=card("↗  "+L10n.t(this,"departures"));
         transitText=content(transitCard);
+        button(transitCard,L10n.t(this,"vbbSource"),()->openUrl("https://v6.vbb.transport.rest/api.html"));
         button(transitCard,L10n.t(this,"map"),this::openMaps);
+        LinearLayout routeCard=card("◷  "+L10n.t(this,"routeTitle"));
+        routeText=content(routeCard);
+        button(routeCard,L10n.t(this,"vbbRoutes"),()->{
+            JSONObject route=DashboardData.cached(this).route;
+            String url=route==null?"https://www.vbb.de/en/":route.optString("sourceUrl","https://www.vbb.de/en/");
+            openUrl(url);
+        });
 
         LinearLayout briefCard=card("✓  "+L10n.t(this,"brief"));
         bringText=content(briefCard);addSpace(briefCard,7);
         briefCard.addView(text(L10n.t(this,"ruleDisclaimer"),12,MUTED,false));
 
+        LinearLayout aiCard=card("✧  "+L10n.t(this,"aiTitle"));
+        aiText=content(aiCard);
+        button(aiCard,L10n.t(this,"aiNow"),this::askAiNow);
+        aiCard.addView(text(L10n.t(this,"aiPrivacy"),12,MUTED,false));
         LinearLayout actions=card(L10n.t(this,"today"));
         button(actions,L10n.t(this,"refresh"),this::refreshAll);
         button(actions,L10n.t(this,"chatgpt"),this::shareToChatGpt);
@@ -145,6 +174,20 @@ public class MainActivity extends Activity {
         fahrenheit.setChecked(p.getBoolean("fahrenheit",false));settings.addView(fahrenheit);
         shareAddress=new CheckBox(this);shareAddress.setText(L10n.t(this,"shareaddress"));shareAddress.setTextColor(WHITE);
         shareAddress.setChecked(p.getBoolean("share_address",false));settings.addView(shareAddress);
+        gpsCheck=new CheckBox(this);gpsCheck.setText(L10n.t(this,"gpsCheck"));gpsCheck.setTextColor(WHITE);
+        gpsCheck.setChecked(p.getBoolean("use_gps",false));settings.addView(gpsCheck);
+        alertsCheck=new CheckBox(this);alertsCheck.setText(L10n.t(this,"alertsCheck"));alertsCheck.setTextColor(WHITE);
+        alertsCheck.setChecked(p.getBoolean("auto_alerts",false));settings.addView(alertsCheck);
+        aiCheck=new CheckBox(this);aiCheck.setText(L10n.t(this,"aiCheck"));aiCheck.setTextColor(WHITE);
+        aiCheck.setChecked(p.getBoolean("ai_auto",false));settings.addView(aiCheck);
+        apiKeyInput=input(settings,L10n.t(this,"apiKey"),"",false);
+        apiKeyInput.setHint(SafeKeyStore.read(this).isEmpty()?L10n.t(this,"apiHint"):L10n.t(this,"apiSaved"));
+        apiKeyInput.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        button(settings,L10n.t(this,"removeKey"),()->{
+            SafeKeyStore.remove(this);Prefs.get(this).edit().putBoolean("ai_auto",false).apply();
+            aiCheck.setChecked(false);apiKeyInput.setText("");apiKeyInput.setHint(L10n.t(this,"apiHint"));
+            statusText.setText(L10n.t(this,"keyRemoved"));
+        });
         button(settings,L10n.t(this,"save"),this::saveSettings);
     }
     private void render(DashboardData.Snapshot s){
