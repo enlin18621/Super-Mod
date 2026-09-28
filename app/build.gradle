@@ -2,6 +2,6 @@ plugins { id 'com.android.application' }
 android {
     namespace 'com.nimbus.weather'
     compileSdk 35
-    defaultConfig { applicationId 'com.nimbus.daily'; minSdk 26; targetSdk 34; versionCode 3; versionName '3.0' }
+    defaultConfig { applicationId 'com.nimbus.daily.syncbeta'; minSdk 26; targetSdk 34; versionCode 4; versionName '4.0-sync-beta' }
     compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
 }

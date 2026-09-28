@@ -1,6 +1,6 @@
 # Nimbus private two-way sync (beta)
 
-This is a **privacy-conscious bridge**, not a direct connection to your ChatGPT account or ChatGPT Memory.
+This is a **privacy-conscious beta bridge**, not a direct connection to your ChatGPT account or ChatGPT Memory. The beta installs separately from Nimbus Alltag v2/v3 as `com.nimbus.daily.syncbeta`, so testing it will not overwrite existing local data.
 
 ## Why this needs a private repository
 

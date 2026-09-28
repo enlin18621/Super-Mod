@@ -96,7 +96,8 @@ public class MainActivity extends Activity {
         TextView title=text(new SimpleDateFormat("EEEE · d MMMM",Locale.forLanguageTag(L10n.lang(this))).format(new Date()),25,WHITE,true);root.addView(title);
         addSpace(root,14);
 
-        LinearLayout forecastCard=card("☀  "+L10n.t(this,"weather")+" · "+Prefs.city(this));
+        LinearLayout forecastCard=card("☀  "+L10n.t(this,"weather")+" · "+
+            (p.getBoolean("weather_gps",false)&&GeoRoute.remembered(this)!=null?L10n.t(this,"gpsWeather"):Prefs.city(this)));
         weatherText=text("—",22,WHITE,true);forecastCard.addView(weatherText);
         addSpace(forecastCard,6);sunText=content(forecastCard);
         button(forecastCard,L10n.t(this,"weatherApi"),()->{

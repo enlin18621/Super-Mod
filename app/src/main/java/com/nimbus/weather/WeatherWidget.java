@@ -42,7 +42,8 @@ public class WeatherWidget extends AppWidgetProvider {
         int[] ids=manager.getAppWidgetIds(new ComponentName(app,WeatherWidget.class));
         if(ids.length==0)return;
         RemoteViews v=new RemoteViews(app.getPackageName(),R.layout.widget_weather);
-        v.setTextViewText(R.id.city,Prefs.city(app).toUpperCase(Locale.ROOT));
+        v.setTextViewText(R.id.city,Prefs.get(app).getBoolean("weather_gps",false)&&GeoRoute.remembered(app)!=null?
+            L10n.t(app,"gpsWeather").toUpperCase(Locale.ROOT):Prefs.city(app).toUpperCase(Locale.ROOT));
         JSONObject current=snapshot.weather==null?null:snapshot.weather.optJSONObject("current");
         JSONObject daily=snapshot.weather==null?null:snapshot.weather.optJSONObject("daily");
         String unit=Prefs.get(app).getBoolean("fahrenheit",false)?"°F":"°C";

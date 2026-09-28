@@ -81,6 +81,7 @@ final class L10n {
         add("foggy","Nebel","Fog","起霧");
         add("thunder","Gewitter","Thunderstorms","雷雨");
         add("gpsTitle","Mein aktueller Standort","My current location","目前位置");
+        add("gpsWeather","Aktueller Standort","Current location","目前位置");
         add("gpsRefresh","Standort jetzt aktualisieren","Update current location","更新目前位置");
         add("gpsCheck","Standort für Wetter, Haltestellen und Routen nutzen (optional)","Use location for weather, nearby stops and routes (optional)","使用位置提供天氣、附近車站與路線（選用）");
         add("gpsMissing","Standort aus oder veraltet. Berechtigung prüfen.","Location disabled or outdated. Check permissions.","位置功能未啟用或資料過舊，請檢查權限。");
