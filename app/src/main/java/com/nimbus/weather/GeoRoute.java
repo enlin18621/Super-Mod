@@ -55,7 +55,7 @@ final class GeoRoute {
                    (best==null||sample.getTime()>best.getTime()))best=sample;
             }
             if(best!=null)remember(c,best);
-        }catch(SecurityException|RuntimeException ignored){}
+        }catch(RuntimeException ignored){}
     }
     static void requestCurrent(Context c,Callback callback){
         if(!permitted(c)||!Prefs.get(c).getBoolean("use_gps",false)){callback.onLocation(false);return;}
@@ -154,6 +154,7 @@ final class GeoRoute {
         result.put("journey",chosen);
         result.put("checkedAt",System.currentTimeMillis());
         result.put("gpsOrigin",origin!=null);
+        result.put("sourceUrl",url);
         return result;
     }
     static long parseTime(String iso) {
