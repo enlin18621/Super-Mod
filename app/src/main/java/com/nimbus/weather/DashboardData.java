@@ -2,6 +2,7 @@ package com.nimbus.weather;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -12,61 +13,92 @@ import java.util.concurrent.Executors;
 
 final class DashboardData {
     private static final ExecutorService WORK=Executors.newSingleThreadExecutor();
-    interface Listener {void onReady(Snapshot s);}
+    interface Listener{void onReady(Snapshot snapshot);}
     static final class Snapshot {
-        JSONObject weather,transit; List<CalendarReader.Event> events; List<String> bring;
-        long updated; boolean error;
+        JSONObject weather,transit,route;
+        List<CalendarReader.Event> events;
+        List<String> bring;
+        long updated,weatherUpdated,transitUpdated,routeUpdated;boolean error;
     }
     static Snapshot cached(Context c){
-        Snapshot s=new Snapshot();SharedPreferences p=Prefs.get(c);
-        try{s.weather=new JSONObject(p.getString("weather_cache","{}"));}catch(Exception ignored){}
-        try{s.transit=new JSONObject(p.getString("transit_cache","{}"));}catch(Exception ignored){}
-        s.events=CalendarReader.today(c);s.bring=DayPlanner.suggestions(c,s.weather,s.events);
+        SharedPreferences p=Prefs.get(c);Snapshot s=new Snapshot();
+        try{s.weather=new JSONObject(p.getString("weather_cache","{}"));}catch(Exception ex){}
+        try{s.transit=new JSONObject(p.getString("transit_cache","{}"));}catch(Exception ex){}
+        try{s.route=new JSONObject(p.getString("route_cache","{}"));if(s.route.length()==0)s.route=null;}catch(Exception ex){}
+        s.events=CalendarReader.today(c);
+        s.bring=DayPlanner.suggestions(c,s.weather,s.events);
         s.updated=p.getLong("updated",0);
+        s.weatherUpdated=p.getLong("weather_updated",0);
+        s.transitUpdated=p.getLong("transit_updated",0);
+        s.routeUpdated=p.getLong("route_updated",0);
+        if(s.route!=null){
+            if(s.routeUpdated<System.currentTimeMillis()-12*60*1000L ||
+               s.route.optLong("eventStart",0)>0&&s.route.optLong("eventStart",0)<System.currentTimeMillis()-15*60*1000L)
+               s.route=null; // never show stale route as real-time advice
+        }
         return s;
     }
-    static void refresh(Context context,Listener listener){
+    static void refresh(Context context,Listener callback) {
         Context c=context.getApplicationContext();
         WORK.execute(()->{
             SharedPreferences p=Prefs.get(c);boolean error=false;
+            // Last-known location works without a background-location permission, but can be unavailable/stale.
+            GeoRoute.tryLastLocation(c);
+            android.location.Location gps=p.getBoolean("use_gps",false)?GeoRoute.remembered(c):null;
             try{
-                JSONObject w=WeatherApi.forecast(Prefs.lat(c),Prefs.lon(c),p.getBoolean("fahrenheit",false));
-                p.edit().putString("weather_cache",w.toString()).apply();
+                double lat=gps!=null?gps.getLatitude():Prefs.lat(c),lon=gps!=null?gps.getLongitude():Prefs.lon(c);
+                JSONObject w=WeatherApi.forecast(lat,lon,p.getBoolean("fahrenheit",false));
+                p.edit().putString("weather_cache",w.toString()).putLong("weather_updated",System.currentTimeMillis())
+                    .putBoolean("weather_gps",gps!=null).apply();
             }catch(Exception ex){error=true;}
             String stop=p.getString("stop","").trim();
-            if(!stop.isEmpty()){
-                try{JSONObject transit=TransitApi.departures(stop);p.edit().putString("transit_cache",transit.toString()).apply();}
-                catch(Exception ex){error=true;p.edit().remove("transit_cache").apply();}
-            }else p.edit().remove("transit_cache").apply();
+            try{
+                JSONObject transit;
+                if(!stop.isEmpty())transit=TransitApi.departures(stop);
+                else if(gps!=null)transit=TransitApi.departuresNearest(gps.getLatitude(),gps.getLongitude());
+                else transit=null;
+                if(transit==null)p.edit().remove("transit_cache").remove("transit_updated").apply();
+                else p.edit().putString("transit_cache",transit.toString()).putLong("transit_updated",System.currentTimeMillis()).apply();
+            }catch(Exception ex){
+                error=true;
+                if(System.currentTimeMillis()-p.getLong("transit_updated",0)>3*60*1000L)
+                    p.edit().remove("transit_cache").apply();
+            }
+            List<CalendarReader.Event> events=CalendarReader.today(c);
+            try{
+                JSONObject route=GeoRoute.route(c,events);
+                if(route==null)p.edit().remove("route_cache").remove("route_updated").apply();
+                else p.edit().putString("route_cache",route.toString()).putLong("route_updated",System.currentTimeMillis()).apply();
+            }catch(Exception ex){
+                error=true;p.edit().remove("route_cache").remove("route_updated").apply();
+            }
             p.edit().putLong("updated",System.currentTimeMillis()).apply();
             Snapshot s=cached(c);s.error=error;
-            if(listener!=null)listener.onReady(s);
+            if(callback!=null)callback.onReady(s);
         });
     }
-    static String time(Context c,long millis){return new SimpleDateFormat("HH:mm",Locale.forLanguageTag(L10n.lang(c))).format(new Date(millis));}
-    static String sun(JSONArrayCompat array) {return array.value;}
+    static String time(Context c,long millis){
+        return millis<=0?"--:--":new SimpleDateFormat("HH:mm",Locale.forLanguageTag(L10n.lang(c))).format(new Date(millis));
+    }
     static String sunTime(JSONObject weather,String key){
         if(weather==null)return "--:--";
         JSONObject daily=weather.optJSONObject("daily");
-        String value=daily==null?"":daily.optJSONArray(key)==null?"":daily.optJSONArray(key).optString(0,"");
-        return value.length()>=16?value.substring(11,16):"--:--";
+        JSONArray times=daily==null?null:daily.optJSONArray(key);
+        String val=times==null?"":times.optString(0,"");
+        return val.length()>=16?val.substring(11,16):"--:--";
     }
-    static String degree(double value){return Double.isNaN(value)?"--°":Math.round(value)+"°";}
+    static String degree(double n){return Double.isNaN(n)?"--°":Math.round(n)+"°";}
     static String weatherDescription(Context c,JSONObject weather){
-        if(weather==null)return "—";
-        JSONObject current=weather.optJSONObject("current");if(current==null)return "—";
-        return L10n.cond(c,current.optInt("weather_code",-1));
+        JSONObject current=weather==null?null:weather.optJSONObject("current");
+        return current==null?"—":L10n.cond(c,current.optInt("weather_code",-1));
     }
     static String daySummary(Context c,Snapshot s){
-        if(s==null||s.weather==null)return "—";
-        JSONObject current=s.weather.optJSONObject("current");JSONObject daily=s.weather.optJSONObject("daily");
+        JSONObject current=s.weather==null?null:s.weather.optJSONObject("current");
+        JSONObject daily=s.weather==null?null:s.weather.optJSONObject("daily");
         if(current==null||daily==null)return "—";
-        double temp=current.optDouble("temperature_2m",Double.NaN);
-        org.json.JSONArray max=daily.optJSONArray("temperature_2m_max"),min=daily.optJSONArray("temperature_2m_min");
-        return degree(temp)+" · "+weatherDescription(c,s.weather)+" · "+L10n.t(c,"high")+" "+
-           (max==null?"--°":degree(max.optDouble(0,Double.NaN)))+" / "+L10n.t(c,"low")+" "+
-           (min==null?"--°":degree(min.optDouble(0,Double.NaN)));
+        JSONArray hi=daily.optJSONArray("temperature_2m_max"),lo=daily.optJSONArray("temperature_2m_min");
+        return degree(current.optDouble("temperature_2m",Double.NaN))+" · "+weatherDescription(c,s.weather)+
+            " · "+L10n.t(c,"high")+" "+(hi==null?"--°":degree(hi.optDouble(0,Double.NaN)))+
+            " / "+L10n.t(c,"low")+" "+(lo==null?"--°":degree(lo.optDouble(0,Double.NaN)));
     }
-    // Internal static class avoided Android dependencies in callers.
-    private static final class JSONArrayCompat {String value;}
 }
