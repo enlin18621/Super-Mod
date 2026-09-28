@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true" android:background="#101827">
+ <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="26dp">
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="NIMBUS" android:textColor="#76DDD0" android:textSize="15sp" android:letterSpacing="0.24" android:layout_marginTop="20dp"/>
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Your weather.&#10;Your city." android:textColor="#FFFFFF" android:textSize="35sp" android:layout_marginTop="15dp"/>
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Choose a location for your home-screen widget." android:textColor="#B0C3D4" android:textSize="15sp" android:layout_marginTop="20dp"/>
+    <EditText android:id="@+id/cityInput" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="City, e.g. Berlin" android:inputType="textCapWords" android:singleLine="true" android:textColor="#FFFFFF" android:textColorHint="#90A6BC" android:layout_marginTop="25dp"/>
+    <Button android:id="@+id/searchButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Find city and update widget" android:textAllCaps="false" android:layout_marginTop="13dp"/>
+    <CheckBox android:id="@+id/fahrenheit" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Use Fahrenheit (°F)" android:textColor="#FFFFFF" android:layout_marginTop="16dp"/>
+    <TextView android:id="@+id/status" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="" android:textColor="#76DDD0" android:layout_marginTop="15dp" android:minHeight="50dp"/>
+    <Button android:id="@+id/refreshButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Refresh now" android:textAllCaps="false"/>
+    <Button android:id="@+id/yrButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Open Yr weather forecast ↗" android:textAllCaps="false" android:layout_marginTop="10dp"/>
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Add widget: long-press your home screen → Widgets → Nimbus Weather." android:textColor="#B0C3D4" android:layout_marginTop="22dp" android:textSize="14sp"/>
+ </LinearLayout>
+</ScrollView>
