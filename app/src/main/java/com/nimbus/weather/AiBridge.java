@@ -64,7 +64,7 @@ final class AiBridge {
                 connection.setRequestMethod("POST");connection.setConnectTimeout(12000);connection.setReadTimeout(30000);
                 connection.setDoOutput(true);connection.setRequestProperty("Authorization","Bearer "+key);
                 connection.setRequestProperty("Content-Type","application/json");
-                JSONObject request=new JSONObject().put("model","gpt-5.4-mini").put("input",prompt(c,s)).put("max_output_tokens",300)
+                JSONObject request=new JSONObject().put("model","gpt-5-mini").put("input",prompt(c,s)).put("max_output_tokens",450)
                     .put("store",false);
                 byte[] bytes=request.toString().getBytes(StandardCharsets.UTF_8);
                 try(OutputStream stream=connection.getOutputStream()){stream.write(bytes);}

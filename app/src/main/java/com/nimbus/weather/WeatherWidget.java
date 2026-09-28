@@ -69,6 +69,12 @@ public class WeatherWidget extends AppWidgetProvider {
             }
         }
         v.setTextViewText(R.id.departure,"↗  "+departure);
+        v.setTextViewText(R.id.route,snapshot.route==null?L10n.t(app,"noRoute"):
+            GeoRoute.shortRoute(app,snapshot.route)+" · "+snapshot.route.optString("destination",""));
+        String ai=Prefs.get(app).getString("ai_advice","");
+        long aiAt=Prefs.get(app).getLong("ai_updated",0);
+        v.setTextViewText(R.id.ai,
+            !ai.isEmpty()&&System.currentTimeMillis()-aiAt<12*60*60*1000L?"✧  "+ai:L10n.t(app,"brief"));
         v.setTextViewText(R.id.bring,"✓  "+(snapshot.bring.isEmpty()?"—":snapshot.bring.get(snapshot.bring.size()>1?1:0)));
         v.setTextViewText(R.id.updated,(snapshot.updated>0?L10n.t(app,"updated")+" "+DashboardData.time(app,snapshot.updated)+" · ":"")+"Open-Meteo · VBB");
         Intent openApp=new Intent(app,MainActivity.class);
