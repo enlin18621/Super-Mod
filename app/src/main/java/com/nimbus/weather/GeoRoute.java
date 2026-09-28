@@ -78,7 +78,7 @@ final class GeoRoute {
                     @Override public void onProviderDisabled(String provider){}
                 },android.os.Looper.getMainLooper());
             }
-        }catch(SecurityException|RuntimeException e){tryLastLocation(c);callback.onLocation(remembered(c)!=null);}
+        }catch(RuntimeException e){tryLastLocation(c);callback.onLocation(remembered(c)!=null);}
     }
     private static JSONObject findAddress(String text)throws Exception{
         JSONArray arr=WeatherApi.getJsonArray("https://v6.vbb.transport.rest/locations?query="+Uri.encode(text)+"&results=3&poi=true&addresses=true&stops=true");
