@@ -74,7 +74,7 @@ final class DayEngine {
                 s.low=Math.round(d.getJSONArray("temperature_2m_min").getDouble(index))+unit;
                 s.temp=index==0?Math.round(cur.getDouble("temperature_2m"))+"°":s.high;
                 s.feels=index==0?Math.round(cur.getDouble("apparent_temperature"))+unit:"—";
-                s.condition=WeatherApi.condition(cur.optInt("weather_code",-1),s.lang);
+                s.condition=WeatherApi.condition(index==0?cur.optInt("weather_code",-1):d.getJSONArray("weather_code").optInt(index,-1),s.lang);
                 s.rainPercent=d.getJSONArray("precipitation_probability_max").optInt(index,-1);
                 s.rain=s.rainPercent<0?"--":s.rainPercent+"%";
                 s.windValue=cur.optDouble("wind_speed_10m",0);

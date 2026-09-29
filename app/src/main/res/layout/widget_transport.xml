@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/transport_root"
+ android:layout_width="match_parent" android:layout_height="match_parent"
+ android:orientation="vertical" android:padding="15dp" android:background="@drawable/widget_bg">
+ <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="🚆   NÄCHSTE FAHRT"
+   android:textSize="12sp" android:textStyle="bold" android:textColor="#5269E9"/>
+ <TextView android:id="@+id/transport_leave" android:layout_width="match_parent" android:layout_height="wrap_content"
+  android:text="--:--" android:textSize="24sp" android:textColor="#18243A" android:textStyle="bold" android:layout_marginTop="7dp"/>
+ <TextView android:id="@+id/transport_route" android:layout_width="match_parent" android:layout_height="wrap_content"
+  android:text="Route öffnen" android:textSize="13sp" android:textColor="#18243A" android:maxLines="2" android:layout_marginTop="7dp"/>
+ <TextView android:id="@+id/transport_updated" android:layout_width="match_parent" android:layout_height="wrap_content"
+  android:text="Nimbus" android:textSize="10sp" android:textColor="#62748F" android:layout_marginTop="5dp"/>
+</LinearLayout>

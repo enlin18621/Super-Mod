@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/compact_root"
+ android:layout_width="match_parent" android:layout_height="match_parent"
+ android:padding="16dp" android:orientation="vertical" android:background="@drawable/widget_bg">
+ <TextView android:id="@+id/compact_city" android:layout_width="match_parent" android:layout_height="wrap_content"
+ android:text="Wetter" android:textSize="12sp" android:textColor="#5269E9" android:textStyle="bold" android:singleLine="true"/>
+ <TextView android:id="@+id/compact_temp" android:layout_width="match_parent" android:layout_height="wrap_content"
+ android:text="--°" android:textSize="36sp" android:textStyle="bold" android:textColor="#18243A" android:layout_marginTop="9dp"/>
+ <TextView android:id="@+id/compact_condition" android:layout_width="match_parent" android:layout_height="wrap_content"
+ android:text="…" android:textSize="13sp" android:textColor="#18243A" android:singleLine="true"/>
+ <TextView android:id="@+id/compact_detail" android:layout_width="match_parent" android:layout_height="wrap_content"
+ android:text="—" android:textSize="11sp" android:textColor="#62748F" android:layout_marginTop="6dp"/>
+</LinearLayout>

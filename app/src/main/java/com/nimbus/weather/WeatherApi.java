@@ -33,7 +33,7 @@ final class WeatherApi {
         return results.getJSONObject(0);
     }
     static JSONObject forecast(double lat, double lon, boolean fahrenheit) throws Exception {
-        String url = String.format(Locale.US, "https://api.open-meteo.com/v1/forecast?latitude=%.6f&longitude=%.6f&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,uv_index_max,sunrise,sunset&timezone=auto&forecast_days=2&temperature_unit=%s", lat, lon, fahrenheit ? "fahrenheit" : "celsius");
+        String url = String.format(Locale.US, "https://api.open-meteo.com/v1/forecast?latitude=%.6f&longitude=%.6f&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,uv_index_max,sunrise,sunset,weather_code&timezone=auto&forecast_days=5&temperature_unit=%s", lat, lon, fahrenheit ? "fahrenheit" : "celsius");
         return getJson(url);
     }
     static String condition(int code, String lang) {

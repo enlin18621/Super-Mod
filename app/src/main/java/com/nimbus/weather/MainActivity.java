@@ -450,7 +450,7 @@ public class MainActivity extends Activity {
             navigate(new Intent(Intent.ACTION_VIEW,Uri.parse("https://www.yr.no/en/search?q="+Uri.encode(q))));
         } else if(p.getBoolean("geo_ok",false)){
             double lat=Double.longBitsToDouble(p.getLong("lat",0)),lon=Double.longBitsToDouble(p.getLong("lon",0));
-            navigate(new Intent(Intent.ACTION_VIEW,Uri.parse("https://www.openstreetmap.org/?mlat="+lat+"&mlon="+lon+"#map=12/"+lat+"/"+lon)));
+            navigate(new Intent(Intent.ACTION_VIEW,Uri.parse("https://www.google.com/search?q="+Uri.encode("weather "+lat+","+lon))));
         }else{page=3;draw();}
     }
     private void navigate(Intent i){

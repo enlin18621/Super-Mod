@@ -50,6 +50,10 @@ final class L10n {
         add("walking","Bequeme Schuhe","Comfortable shoes","舒適的鞋子");
         add("tickets","Tickets und Ausweis","Tickets and ID","車票與身分證件");
         add("passport","Reisepass prüfen","Check passport","檢查護照");
+        add("keys","Schlüssel und Handy","Keys and phone","鑰匙與手機");
+        add("sunglasses","Sonnenbrille","Sunglasses","太陽眼鏡");
+        add("snack","Snack","Snack","點心");
+        add("gymKit","Sportsachen und Handtuch","Gym kit and towel","運動服與毛巾");
         add("saved","Gespeichert. Neue Daten werden geladen …","Saved. Loading new data…","已儲存，正在更新……");
         add("errorCity","Ort konnte nicht gefunden werden: ","Could not find city: ","找不到城市：");
         add("calendarOK","Kalender ist verbunden.","Calendar connected.","已連結行事曆。");
