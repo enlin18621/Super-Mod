@@ -1,5 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 108 108">
-  <rect width="108" height="108" rx="23" fill="#101E30"/>
-  <circle cx="69" cy="39" r="15" fill="#FFD26A"/>
-  <path d="M37 73 C29 73 23 67 23 61 C23 54 29 49 36 49 C39 42 46 38 54 38 C63 38 70 45 70 54 C77 53 84 59 84 66 C84 73 79 78 71 78 L37 78 C29 78 23 72 23 65 L23 61" fill="#F5F9FC"/>
+ <title>Nimbus Daily – personal dashboard</title>
+ <rect width="108" height="108" rx="23" fill="#14243A"/>
+ <rect x="28" y="30" width="30" height="48" rx="6" fill="#F6FAFC"/>
+ <rect x="64" y="30" width="17" height="20" rx="5" fill="#69DACA"/>
+ <rect x="64" y="56" width="17" height="22" rx="5" fill="#AFBFDA"/>
 </svg>

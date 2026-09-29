@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="108dp" android:height="108dp"
-    android:viewportWidth="108" android:viewportHeight="108">
-    <path android:fillColor="#FFD26A"
-        android:pathData="M69,24 A15,15 0,1 1,69 54 A15,15 0,1 1,69 24 Z"/>
-    <path android:fillColor="#F5F9FC"
-        android:pathData="M37,73 C29,73 23,67 23,61 C23,54 29,49 36,49 C39,42 46,38 54,38 C63,38 70,45 70,54 C77,53 84,59 84,66 C84,73 79,78 71,78 L37,78 C29,78 23,72 23,65 L23,61 Z"/>
+ android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+ <!-- Three clean dashboard panels: daily briefing, calendar and travel. -->
+ <path android:fillColor="#F6FAFC" android:pathData="M34,30 H52 Q58,30 58,36 V72 Q58,78 52,78 H34 Q28,78 28,72 V36 Q28,30 34,30 Z"/>
+ <path android:fillColor="#69DACA" android:pathData="M69,30 H76 Q81,30 81,35 V45 Q81,50 76,50 H69 Q64,50 64,45 V35 Q64,30 69,30 Z"/>
+ <path android:fillColor="#AFBFDA" android:pathData="M69,56 H76 Q81,56 81,61 V73 Q81,78 76,78 H69 Q64,78 64,73 V61 Q64,56 69,56 Z"/>
 </vector>
